@@ -1,0 +1,5 @@
+.gitignore
+node_modules
+dist
+subjectAlternativeNames.ext
+.DS_Store
