@@ -1,5 +1,6 @@
+import {inject} from 'inversify';
 import {BaseHttpController, controller, httpGet} from 'inversify-express-utils';
-import {Authenticator} from '../../framework';
+import {Authenticator, FRAMEWORKTYPES} from '../../framework';
 
 /*
  * A controller class to return token signing keys
@@ -13,7 +14,7 @@ export class SecurityController extends BaseHttpController {
     /*
      * Receive the authenticator class, which makes remote calls to the Authorization Server
      */
-    public constructor(authenticator: Authenticator) {
+    public constructor(@inject(FRAMEWORKTYPES.Authenticator) authenticator: Authenticator) {
         super();
         this._authenticator = authenticator;
     }
