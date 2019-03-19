@@ -8,14 +8,14 @@ import {Authenticator} from '../../framework';
 @controller('/unsecure')
 export class SecurityController extends BaseHttpController {
 
-    /*private readonly _authenticator: Authenticator;*/
+    private readonly _authenticator: Authenticator;
 
     /*
      * Receive the authenticator class, which makes remote calls to the Authorization Server
      */
-    public constructor(/*authenticator: Authenticator*/) {
+    public constructor(authenticator: Authenticator) {
         super();
-        /*this._authenticator = authenticator;*/
+        this._authenticator = authenticator;
     }
 
     /*
@@ -23,11 +23,6 @@ export class SecurityController extends BaseHttpController {
      */
     @httpGet('/tokensigningkeys')
     private async get(): Promise<any> {
-        
-        // TODO: Injecting authenticator into this class creates a not registered startup error
-        // Do I need to register framework dependencies first?
-
-        // return await this._authenticator.getTokenSigningKeys();
-        return {};
+        return await this._authenticator.getTokenSigningKeys();
     }
 }

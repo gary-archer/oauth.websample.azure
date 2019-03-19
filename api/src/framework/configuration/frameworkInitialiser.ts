@@ -122,11 +122,13 @@ export class FrameworkInitialiser<TClaims extends CoreApiClaims> {
             this._configuration,
             this._loggerFactory);
 
+        // Register framework dependencies as part of preparing the framework
+        this._registerDependencies();
         return this;
     }
 
     /*
-     * Set up Express middleware and register framework dependencies
+     * Set up cross cutting concerns as Express middleware
      */
     public configureMiddleware(expressApp: Application): FrameworkInitialiser<TClaims> {
 
@@ -146,15 +148,12 @@ export class FrameworkInitialiser<TClaims extends CoreApiClaims> {
             `${this._apiBasePath}*`,
             this._unhandledPromiseRejectionHandler.apply(filter.authorizeAndGetClaims));
 
-        // A middleware with special behaviour for testing
+        // The third middleware provides non functional testing behaviour
         const handler = new CustomHeaderMiddleware(this._configuration.apiName);
         expressApp.use(
             `${this._apiBasePath}*`,
             this._unhandledPromiseRejectionHandler.apply(handler.processHeaders));
 
-        // Inversify express utils requires us to register framework dependencies at this stage
-        // This enables dependency graphs used by controllers to be resolved
-        this._registerDependencies();
         return this;
     }
 

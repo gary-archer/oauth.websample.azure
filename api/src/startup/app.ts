@@ -2,7 +2,6 @@ import * as fs from 'fs-extra';
 import {Container} from 'inversify';
 import 'reflect-metadata';
 import {Configuration} from '../configuration/configuration';
-import {CompositionRoot} from '../dependencies/compositionRoot';
 import {DebugProxyAgent, LoggerFactory, StartupExceptionHandler} from '../framework';
 import {HttpServer} from './httpServer';
 
@@ -20,15 +19,13 @@ import {HttpServer} from './httpServer';
         const configuration = JSON.parse(configurationBuffer.toString()) as Configuration;
         loggerFactory.configure(configuration.framework);
 
-        // Create the container and register the API's business logic dependencies
-        CompositionRoot.registerDependencies(container);
-
-        // Configure HTTP debugging if relevant
+        // Set up HTTP debugging if configured
         DebugProxyAgent.initialise();
 
-        // Do the application startup and start listening for requests
+        // Configure then start the HTTP server
         const httpServer = new HttpServer(configuration, container, loggerFactory);
-        await httpServer.start();
+        const app = await httpServer.configure();
+        httpServer.start(app);
 
     } catch (e) {
 
