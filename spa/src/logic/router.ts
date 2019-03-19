@@ -1,6 +1,7 @@
 import * as $ from 'jquery';
-import {Authenticator} from '../plumbing/authenticator';
-import {UrlHelper} from '../plumbing/urlHelper';
+import {Authenticator} from '../plumbing/oauth/authenticator';
+import {UrlHelper} from '../plumbing/utilities/urlHelper';
+import {ErrorView} from './errorView';
 import {ListView} from './listView';
 import {LogoutView} from './logoutView';
 import {TransactionsView} from './transactionsView';
@@ -17,13 +18,17 @@ export class Router {
     private _apiBaseUrl: string;
     private _authenticator: Authenticator;
     private _currentView: any;
-
+    private _loadingState: boolean;
     /*
      * Initialize the current view
      */
     public constructor(apiBaseUrl: string, authenticator: Authenticator) {
         this._apiBaseUrl = apiBaseUrl;
         this._authenticator = authenticator;
+
+        // Switch to the loading state on application startup
+        this._loadingState = false;
+        this._updateControlsDuringLoad();
     }
 
     /*
@@ -31,15 +36,14 @@ export class Router {
      */
     public async executeView(): Promise<void> {
 
-        // Disable buttons until ready
-        $('.initiallydisabled').prop('disabled', true);
-        $('.initiallydisabled').addClass('disabled');
+        // Switch to the loading state while loading a view
+        this._updateControlsDuringLoad();
 
         // Get URL details
         const oldView = this._currentView;
         const hashData = UrlHelper.getLocationHashData();
 
-        // Work out which view to show
+        // Our simplistic routing works out which main view to show from a couple of known hash fragments
         if (hashData.loggedout) {
             this._currentView = new LogoutView();
         } else {
@@ -50,21 +54,17 @@ export class Router {
             }
         }
 
-        // Update common elements of the frame window when running a new view
-        $('#error').text('');
-
         // Unload the old view
         if (oldView) {
             oldView.unload();
         }
 
-        // Run the new view
+        // Load the new view
         await this._currentView.execute();
 
-        // Enable buttons unless logged out
+        // Update controls unless logged out
         if (!hashData.loggedout) {
-            $('.initiallydisabled').prop('disabled', false);
-            $('.initiallydisabled').removeClass('disabled');
+            this._updateControlsAfterLoad();
         }
     }
 
@@ -81,16 +81,30 @@ export class Router {
     }
 
     /*
-     * Button handler to reset the hash location to the list view and refresh
+     * Update controls during busy processing and switch to a loading state
      */
-    public moveHome(): void {
+    private _updateControlsDuringLoad(): boolean {
 
-        if (location.hash !== '#home') {
-            // Move home
-            location.hash = '#home';
-        } else {
-            // Otherwise force a hash update
-            location.hash = '#';
+        if (!this._loadingState) {
+            $('.initiallydisabled').prop('disabled', true);
+            $('.initiallydisabled').addClass('disabled');
+            this._loadingState = true;
         }
+
+        ErrorView.clear();
+        return false;
+    }
+
+    /*
+     * Update controls upon completion and remove the loading state
+     */
+    private _updateControlsAfterLoad(): void {
+
+        if (this._loadingState) {
+            $('.initiallydisabled').prop('disabled', false);
+            $('.initiallydisabled').removeClass('disabled');
+        }
+
+        this._loadingState = false;
     }
 }

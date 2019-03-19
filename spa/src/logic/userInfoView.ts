@@ -1,7 +1,7 @@
 import * as $ from 'jquery';
 import {UserInfoClaims} from '../entities/userInfoClaims';
-import {Authenticator} from '../plumbing/authenticator';
-import {HttpClient} from '../plumbing/httpClient';
+import {Authenticator} from '../plumbing/oauth/authenticator';
+import {HttpClient} from '../plumbing/utilities/httpClient';
 
 /*
  * Logic related to user info

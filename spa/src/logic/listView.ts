@@ -1,7 +1,7 @@
 import * as $ from 'jquery';
 import {Company} from '../entities/company';
-import {Authenticator} from '../plumbing/authenticator';
-import {HttpClient} from '../plumbing/httpClient';
+import {Authenticator} from '../plumbing/oauth/authenticator';
+import {HttpClient} from '../plumbing/utilities/httpClient';
 
 /*
  * Logic related to the list view
@@ -45,9 +45,9 @@ export class ListView {
      */
     private _renderData(companies: Company[]): void {
 
-        // Show buttons and render
+        // Show and clear
         $('.listcontainer').removeClass('hide');
-        $('.panel-group').text('');
+        $('.companyList').html('');
 
         companies.forEach((company: Company) => {
 
@@ -66,7 +66,7 @@ export class ListView {
                                             ${company.name}
                                         </div>
                                         <div class='col-xs-3 image-padding'>
-                                            <a data-id=${company.id}>View Transactions</a>
+                                            <a class='companyLink' data-id=${company.id}>View Transactions</a>
                                         </div>
                                         <div class='col-xs-2 amount image-padding'>
                                             ${formattedTargetUsd}<br/>
@@ -81,11 +81,11 @@ export class ListView {
                                   </div>`);
 
             // Update the DOM
-            $('.panel-group').append(companyDiv);
+            $('.companyList').append(companyDiv);
         });
 
         // A click handler will change the view to look at transaction details
-        $('a').on('click', this._selectCompanyTransactions);
+        $('.companyLink').on('click', this._selectCompanyTransactions);
     }
 
     /*

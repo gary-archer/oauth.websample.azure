@@ -1,8 +1,8 @@
 import * as $ from 'jquery';
 import {CompanyTransactions} from '../entities/companyTransactions';
 import {Transaction} from '../entities/transaction';
-import {Authenticator} from '../plumbing/authenticator';
-import {HttpClient} from '../plumbing/httpClient';
+import {Authenticator} from '../plumbing/oauth/authenticator';
+import {HttpClient} from '../plumbing/utilities/httpClient';
 
 /*
  * Logic related to the transactions view
@@ -38,7 +38,7 @@ export class TransactionsView {
 
         } catch (uiError) {
 
-            // If an invalid or unauthorized company id is typed in the browser then return to the list page
+            // If an invalid or unauthorized id is typed in the browser then return to the list page
             if (uiError.statusCode === 404) {
                 location.hash = '#';
             } else {
@@ -59,9 +59,9 @@ export class TransactionsView {
      */
     private _renderData(data: CompanyTransactions): void {
 
-        // Show buttons and render
+        // Show and clear
         $('.transactionscontainer').removeClass('hide');
-        $('.transactionslist').text('');
+        $('.transactionslist').html('');
         $('.transactionsheader').text(`Transactions for ${data.company.name}`);
 
         data.transactions.forEach((transaction: Transaction) => {

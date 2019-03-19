@@ -1,10 +1,10 @@
-import {AppConfiguration} from './appConfiguration';
-import {OAuthConfiguration} from './oauthConfiguration';
+import {FrameworkConfiguration} from '../framework';
+import {ApiConfiguration} from './apiConfiguration';
 
 /*
  * A holder for configuration settings
  */
 export interface Configuration {
-    app: AppConfiguration;
-    oauth: OAuthConfiguration;
+    api: ApiConfiguration;
+    framework: FrameworkConfiguration;
 }

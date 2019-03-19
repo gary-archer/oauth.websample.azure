@@ -7,6 +7,4 @@ export interface OAuthConfiguration {
     appUri: string;
     postLogoutPath: string;
     scope: string;
-    resource: string;
-    tokenSigningKeys: any;
 }

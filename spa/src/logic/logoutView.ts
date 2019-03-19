@@ -1,7 +1,7 @@
 import * as $ from 'jquery';
 
 /*
- * Logic related to the logout view
+ * Logic related to the simple logout view
  */
 export class LogoutView {
 

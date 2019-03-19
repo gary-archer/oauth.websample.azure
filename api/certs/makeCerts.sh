@@ -52,7 +52,7 @@ echo '*** Successfully created Root CA'
 #
 # Create the certificate public + private key
 #
-openssl genrsa -out $SSL_CERT_FILE_NAME.key 2048
+openssl genrsa -out $SSL_CERT_FILE_NAME.key 2048 -passout pass:$SSL_CERT_PASSWORD
 echo '*** Successfully created SSL key'
 
 #
@@ -68,7 +68,6 @@ echo '*** Successfully created SSL certificate signing request'
 #
 # Create the SSL certificate
 #
-echo subjectAltName=DNS:$API_DOMAIN_NAME,DNS:$WEB_DOMAIN_NAME > subjectAlternativeNames.ext
 openssl x509 -req \
 			-in $SSL_CERT_FILE_NAME.csr \
 			-CA $ROOT_CERT_DOMAIN_NAME.crt \
@@ -77,7 +76,7 @@ openssl x509 -req \
 			-out $SSL_CERT_FILE_NAME.crt \
 			-sha256 \
 			-days 3650 \
-			-extfile subjectAlternativeNames.ext
+			-extfile extended/server.ext
 echo '*** Successfully created SSL certificate'
 
 #

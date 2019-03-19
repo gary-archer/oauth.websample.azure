@@ -1,13 +1,28 @@
 {
-    "app": {
+    "api": {
         "sslCertificateFileName": "mycompany.ssl.pfx",
         "sslCertificatePassword": "SslPassword1",
         "trustedOrigins": [
             "https://web.mycompany.com"
         ]
     },
-    "oauth": {
-        "authority":    "https://login.microsoftonline.com/7f071fbc-8bf2-4e61-bb48-dabd8e2f5b5a",
-        "audience":     "https://garyarcher36gmail.onmicrosoft.com/1a0bcc51-198c-476c-89bf-ba2db016fbe7"
+    "framework": {
+        "apiName":              "BasicApi",
+        "authority":    		"https://login.microsoftonline.com/7f071fbc-8bf2-4e61-bb48-dabd8e2f5b5a",
+        "audience":     		"https://garyarcher36gmail.onmicrosoft.com/1a0bcc51-198c-476c-89bf-ba2db016fbe7"
+        "maxTokenCacheMinutes": 60,
+        "logging": {
+            "levels": {
+                "production":  "info",
+                "development": "info",
+                "classOverrides": {
+                    "claimsMiddleware": "info",
+                    "claimsCache":      "info"
+                }
+            },
+            "performance": {
+                "thresholdMilliseconds": 500
+            }
+        }
     }
 }

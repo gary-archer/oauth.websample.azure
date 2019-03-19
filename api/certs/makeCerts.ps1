@@ -59,7 +59,7 @@ function CreateRootCertPrivateKey()
  #>
 function CreateSslCertificateKey()
 {
-	$args = "genrsa -out ${sslCertFileName}.key 2048"
+	$args = "genrsa -out ${sslCertFileName}.key 2048 -passout pass:${sslCertPassword}"
 	RunOpenSslCommand $args
 }
 
@@ -77,9 +77,8 @@ function CreateSslCertificateSigningRequest()
  #>
  function CreateSslCertificate()
  {
-	"subjectAltName=DNS:${apiDomainName},DNS:${webDomainName}" | Out-File 'subjectAlternativeNames.ext'
 	$args = "x509 -req -in ${sslCertFileName}.csr -CA ${rootCertDomainName}.crt -CAkey ${rootCertDomainName}.key -CAcreateserial"
-	$args += " -out ${sslCertFileName}.crt -sha256 -days 3650 -extfile subjectAlternativeNames.ext"
+	$args += " -out ${sslCertFileName}.crt -sha256 -days 3650 -extfile extended/server.ext"
 	RunOpenSslCommand $args
 }
 

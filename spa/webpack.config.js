@@ -7,7 +7,7 @@ module.exports = {
   context: path.resolve(__dirname, 'src'),
 
   // Pull in all dependencies starting from the root file
-  entry: ["./plumbing/polyfill.ts", "./logic/app.ts"],
+  entry: ["./plumbing/polyfill.ts", "./app.ts"],
   output: {
     
     // Build our code into an SPA bundle file
@@ -17,7 +17,8 @@ module.exports = {
   resolve: {
     
     // Set extensions for import statements
-    extensions: ['.ts']
+    // Note that JS prevents ts-loader failures for some core node imports
+    extensions: ['.ts', '.js']
   },
   module: {
     rules: [
@@ -29,14 +30,19 @@ module.exports = {
     ]
   },
   plugins: [
+    
+    // Build 3rd party code into a Vendor bundle file
     new webpack.optimize.CommonsChunkPlugin({
-      
-      // Build 3rd party code into a Vendor bundle file
       name: 'vendor',
       filename: '../dist/vendor.bundle.min.js',
       minChunks (module) {
-        return module.context && module.context.indexOf('node_modules') !== -1;
+          return module.context && module.context.indexOf('node_modules') !== -1;
       }
-    })
+    }),
+
+    // Disable moment time formatting locales, which causes problems and my sample does not need
+    // https://github.com/moment/moment/issues/4945
+    // https://github.com/jmblog/how-to-optimize-momentjs-with-webpack
+    new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/)
   ]
 }
