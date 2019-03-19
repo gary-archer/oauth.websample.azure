@@ -1,8 +1,10 @@
+import * as got from 'got';
 import {inject, injectable} from 'inversify';
 import {FrameworkConfiguration} from '../configuration/frameworkConfiguration';
 import {FRAMEWORKTYPES} from '../configuration/frameworkTypes';
 import {OAuthErrorHandler} from '../errors/oauthErrorHandler';
 import {LogEntry} from '../logging/logEntry';
+import {DebugProxyAgent} from '../utilities/debugProxyAgent';
 import {using} from '../utilities/using';
 import {CoreApiClaims} from './coreApiClaims';
 import {IssuerMetadata} from './issuerMetadata';
@@ -32,6 +34,25 @@ export class Authenticator {
         this._issuer = metadata.issuer;
         this._logEntry = logEntry;
         this._setupCallbacks();
+    }
+
+    /*
+     * The first public operation downloads token signing keys in a raw format for the UI
+     * This works around CORS limitations in Azure that prevent the browser making the call
+     */
+    public async getTokenSigningKeys(): Promise<any> {
+
+        try {
+            const response = await got(this._issuer.jwks_uri, {
+                json: true,
+                agent: DebugProxyAgent.get(),
+            });
+            return response.body;
+
+        } catch (e) {
+            const handler = new OAuthErrorHandler(this._configuration);
+            throw handler.fromSigningKeysDownloadError(e, this._issuer.jwks_uri);
+        }
     }
 
     /*

@@ -27,6 +27,19 @@ export class OAuthErrorHandler {
     }
 
     /*
+     * Handle the error for download failures
+     */
+    public fromSigningKeysDownloadError(responseError: any, url: string): ApiError {
+
+        const apiError = new ApiError(
+            this._configuration.apiName,
+            'signing_key_download_failure',
+            'Signing keys download failed');
+        apiError.details = this._getErrorDetails(null, responseError, url);
+        return apiError;
+    }
+
+    /*
      * Handle the request promise error for introspection failures
      */
     public fromIntrospectionError(responseError: any, url: string): ApiError {

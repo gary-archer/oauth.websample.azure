@@ -21,7 +21,7 @@ export class Authenticator {
     /*
      * Class setup
      */
-    public constructor(config: OAuthConfiguration, errorCallback: (error: any) => void) {
+    public constructor(config: OAuthConfiguration, tokenSigningKeys: any, errorCallback: (error: any) => void) {
 
         // Store a reference to the callback
         Authenticator._errorCallback = errorCallback;
@@ -38,6 +38,14 @@ export class Authenticator {
             loadUserInfo: false,
             automaticSilentRenew: true,
             monitorSession: false,
+
+            // Indicate the API our access token is for
+            extraQueryParams: {
+                resource: config.resource,
+            },
+
+            // Set signing keys manually to work around Azure AD not allowing CORS requests to download them
+            signingKeys: tokenSigningKeys,
         };
 
         // Create the user manager

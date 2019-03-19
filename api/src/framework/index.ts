@@ -20,6 +20,7 @@ import {LoggerFactory} from './logging/loggerFactory';
 import {LoggerMiddleware} from './logging/loggerMiddleware';
 import {PerformanceBreakdown} from './logging/performanceBreakdown';
 import {AuthenticationFilter} from './security/authenticationFilter';
+import {Authenticator} from './security/authenticator';
 import {CoreApiClaims} from './security/coreApiClaims';
 import {CustomPrincipal} from './security/customPrincipal';
 import {CustomHeaderMiddleware} from './utilities/customHeaderMiddleware';
@@ -46,6 +47,7 @@ export {
     LoggerMiddleware,
     PerformanceBreakdown,
     AuthenticationFilter,
+    Authenticator,
     CoreApiClaims,
     CustomPrincipal,
     CustomHeaderMiddleware,

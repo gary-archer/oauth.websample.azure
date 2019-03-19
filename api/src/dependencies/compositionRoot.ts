@@ -1,5 +1,6 @@
 import {Container} from 'inversify';
 import {CompanyController} from '../logic/controllers/companyController';
+import {SecurityController} from '../logic/controllers/securityController';
 import {UserInfoController} from '../logic/controllers/userInfoController';
 import {CompanyRepository} from '../logic/repositories/companyRepository';
 import {JsonFileReader} from '../utilities/jsonFileReader';
@@ -17,6 +18,7 @@ export class CompositionRoot {
 
         // Note also that Inversify creates an instance of each object at application startup
         // This is done to create the dependency graph definition
+        container.bind<SecurityController>(TYPES.SecurityController).to(SecurityController).inRequestScope();
         container.bind<JsonFileReader>(TYPES.JsonFileReader).to(JsonFileReader).inRequestScope();
         container.bind<CompanyRepository>(TYPES.CompanyRepository).to(CompanyRepository).inRequestScope();
         container.bind<CompanyController>(TYPES.CompanyController).to(CompanyController).inRequestScope();

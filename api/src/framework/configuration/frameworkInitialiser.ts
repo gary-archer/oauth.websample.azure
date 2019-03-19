@@ -194,7 +194,6 @@ export class FrameworkInitialiser<TClaims extends CoreApiClaims> {
         // The API claims is a dummy binding that is overwritten later by the authentication filter
         this._container.bind<LogEntry>(FRAMEWORKTYPES.LogEntry)
                        .toDynamicValue((ctx) => this._loggerFactory.createLogEntry()).inRequestScope();
-
         this._container.bind<TClaims>(FRAMEWORKTYPES.ApiClaims)
                        .toConstantValue({} as any);
     }

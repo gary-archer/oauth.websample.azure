@@ -90,6 +90,7 @@ export class HttpServer {
             this._configuration.framework,
             this._loggerFactory);
         await framework.withApiBasePath('/api/')
+                       .addUnsecuredPath('/api/unsecure/tokensigningkeys')
                        .withClaimsSupplier(BasicApiClaims)
                        .withCustomClaimsProviderSupplier(BasicApiClaimsProvider)
                        .prepare();

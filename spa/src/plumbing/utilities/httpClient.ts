@@ -29,6 +29,26 @@ export class HttpClient {
     }
 
     /*
+     * Azure AD does not support CORS requests to download token signing keys
+     * Therefore we make a double hop via our API instead
+     */
+    public static async loadTokenSigningKeys(jwksUrl: string): Promise<any> {
+        try {
+            // Make the call
+            const keyset = await $.ajax({
+                    url: jwksUrl,
+                    type: 'GET',
+                    dataType: 'json',
+                });
+            return keyset.keys;
+
+        } catch (xhr) {
+            // Improve the default error message
+            throw ErrorHandler.getFromAjaxError(xhr, jwksUrl);
+        }
+    }
+
+    /*
      * Get data from an API URL and handle retries if needed
      */
     public static async callApi(

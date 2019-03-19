@@ -19,6 +19,7 @@ export class Router {
     private _authenticator: Authenticator;
     private _currentView: any;
     private _loadingState: boolean;
+
     /*
      * Initialize the current view
      */

@@ -41,9 +41,10 @@ class App {
         $('#btnClearTrace').click(this._onClearTrace);
 
         try {
-            // Download configuration and then create our main objects
+            // Download configuration and set up authentication
             const config = await this._downloadSpaConfig();
-            this._configureAuthentication(config);
+            const tokenSigningKeys = await this._downloadTokenSigningKeys(config);
+            this._configureAuthentication(config, tokenSigningKeys);
 
             // We must be prepared for page invocation to be an OAuth login response
             await this._handleLoginResponse();
@@ -58,6 +59,11 @@ class App {
 
             // Render the error view if there are problems
             ErrorView.execute(e);
+
+        } finally {
+
+            // After the initial load, regardless of success, start listening for hash changes
+            $(window).on('hashchange', this._onHashChange);
         }
     }
 
@@ -69,17 +75,23 @@ class App {
     }
 
     /*
+     * Download token signing keys from our API to work around Azure AD limitations
+     */
+    private async _downloadTokenSigningKeys(config: Configuration): Promise<any> {
+        const url = `${config.app.apiBaseUrl}/unsecure/tokensigningkeys`;
+        return await HttpClient.loadTokenSigningKeys(url);
+    }
+
+    /*
      * Initialise authentication related processing
      */
-    private _configureAuthentication(config: Configuration): void {
+    private _configureAuthentication(config: Configuration, tokenSigningKeys: any): void {
 
-        // Initialise our OIDC Client wrapper
-        this._authenticator = new Authenticator(config.oauth, this._onBackgroundError);
-
-        // Set up OIDC Client logging
+        // Initialise our OIDC Client wrapper and configure OIDC Client logging
+        this._authenticator = new Authenticator(config.oauth, tokenSigningKeys, this._onBackgroundError);
         TraceView.initialize();
 
-        // Our simple router passes the OIDC Client instance between views
+        // Our simple router uses the authenticator to get tokens and passes it between views
         this._router = new Router(config.app.apiBaseUrl, this._authenticator);
     }
 
@@ -92,18 +104,10 @@ class App {
 
     /*
      * Get and display user claims from the API, which can contain any data we need, not just token data
+     * User info is then rendered in our page
      */
     private async _getUserClaims(): Promise<void> {
-
-        try {
-            // Get user data and display data in the user region of the page
-            await this._router.executeUserInfoView();
-
-        } finally {
-
-            // The above is a one off event and regardless of success we start listening for hash changes
-            $(window).on('hashchange', this._onHashChange);
-        }
+        await this._router.executeUserInfoView();
     }
 
     /*
@@ -132,10 +136,18 @@ class App {
      */
     private _onHome(): void {
 
-        if (location.hash !== '#home') {
-            location.hash = '#home';
+        if (!this._router) {
+
+            // If we don't have a router yet, reload the whole page
+            location.reload();
         } else {
-            location.hash = '#';
+
+            // Otherwise update the hash location
+            if (location.hash !== '#home') {
+                location.hash = '#home';
+            } else {
+                location.hash = '#';
+            }
         }
     }
 

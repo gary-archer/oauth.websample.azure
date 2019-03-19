@@ -35,6 +35,9 @@ export class LoggerFactory implements ILoggerFactory {
 
         // Set default performance thresholds
         this._defaultPerformanceThresholdMilliseconds = 1000;
+
+        // Create the production logger with the default log level
+        this._productionLogger = this._createProductionLogger();
     }
 
     /*
@@ -47,7 +50,7 @@ export class LoggerFactory implements ILoggerFactory {
         this._setLogLevels(configuration.logging.levels);
         this._setPerformanceThresholds(configuration.logging.performance);
 
-        // Create the production logger
+        // Now that we've initialised correctly, recreate the production logger with the correct log level
         this._productionLogger = this._createProductionLogger();
     }
 
