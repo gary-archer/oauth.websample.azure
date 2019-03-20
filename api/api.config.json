@@ -17,11 +17,12 @@
                 "development": "info",
                 "classOverrides": {
                     "claimsMiddleware": "info",
-                    "claimsCache":      "info"
+                    "claimsCache":      "info",
+                    "authenticator":    "info"
                 }
             },
             "performance": {
-                "thresholdMilliseconds": 500
+                "thresholdMilliseconds": 0
             }
         }
     }

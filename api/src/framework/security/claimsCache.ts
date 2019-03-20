@@ -27,7 +27,7 @@ export class ClaimsCache<TClaims extends CoreApiClaims> {
      * Injected dependencies
      */
     private readonly _cache: NodeCache;
-    private readonly _logger: Logger;
+    private readonly _debugLogger: Logger;
 
     /*
      * Create the cache at application startup
@@ -35,7 +35,7 @@ export class ClaimsCache<TClaims extends CoreApiClaims> {
     public constructor(configuration: FrameworkConfiguration, loggerFactory: ILoggerFactory) {
 
         // Create our logger
-        this._logger = loggerFactory.createDevelopmentLogger(ClaimsCache.name);
+        this._debugLogger = loggerFactory.createDevelopmentLogger(ClaimsCache.name);
 
         // Create the cache and set a maximum time to live in seconds
         const defaultExpirySeconds = configuration.maxTokenCacheMinutes * 60;
@@ -45,7 +45,7 @@ export class ClaimsCache<TClaims extends CoreApiClaims> {
 
         // If required add debug output here to verify expiry occurs when expected
         this._cache.on('expired', (key: string, value: any) => {
-            this._logger.debug(`Token with hash ${key} has expired and been removed from the cache`);
+            this._debugLogger.debug(`Token with hash ${key} has expired and been removed from the cache`);
         });
     }
 
@@ -56,7 +56,7 @@ export class ClaimsCache<TClaims extends CoreApiClaims> {
 
         // Get the token hash and see if it exists in the cache
         const hash = hasher.sha256(accessToken);
-        this._logger.debug(`Token with hash ${hash} received, querying cache`);
+        this._debugLogger.debug(`Token with hash ${hash} received, querying cache`);
         const claims = await this._cache.get<TClaims>(hash);
         if (!claims) {
 
@@ -80,7 +80,7 @@ export class ClaimsCache<TClaims extends CoreApiClaims> {
 
             // Get the hash and output debug info
             const hash = hasher.sha256(accessToken);
-            this._logger.debug(`Token with hash ${hash} will expire in ${secondsToCache} seconds`);
+            this._debugLogger.debug(`Token with hash ${hash} will expire in ${secondsToCache} seconds`);
 
             // Do not exceed the maximum time we configured
             if (secondsToCache > this._cache.options.stdTTL!) {
@@ -88,7 +88,7 @@ export class ClaimsCache<TClaims extends CoreApiClaims> {
             }
 
             // Cache the token until the above time
-            this._logger.debug(`Token with hash ${hash} being added to cache for ${secondsToCache} seconds`);
+            this._debugLogger.debug(`Token with hash ${hash} being added to cache for ${secondsToCache} seconds`);
             await this._cache.set(hash, claims, secondsToCache);
         }
     }

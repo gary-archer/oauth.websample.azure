@@ -18,7 +18,7 @@ export class ClaimsMiddleware<TClaims extends CoreApiClaims> {
     // Injected dependencies
     private readonly _cache: ClaimsCache<TClaims>;
     private readonly _authenticator: Authenticator;
-    private readonly _logger: Logger;
+    private readonly _debugLogger: Logger;
 
     // Callbacks
     private _claimsSupplier!: () => TClaims;
@@ -34,7 +34,7 @@ export class ClaimsMiddleware<TClaims extends CoreApiClaims> {
 
         this._cache = cache;
         this._authenticator = authenticator;
-        this._logger = loggerFactory.createDevelopmentLogger(ClaimsMiddleware.name);
+        this._debugLogger = loggerFactory.createDevelopmentLogger(ClaimsMiddleware.name);
     }
 
     public withClaimsSupplier(claimsSupplier: () => TClaims): ClaimsMiddleware<TClaims> {
@@ -58,31 +58,24 @@ export class ClaimsMiddleware<TClaims extends CoreApiClaims> {
 
         // First handle missing tokens
         if (!accessToken) {
-            this._logger.debug('No access token was supplied in the bearer header');
+            this._debugLogger.debug('No access token was supplied in the bearer header');
             return null;
         }
 
         // Bypass and use cached results if they exist
         const cachedClaims = await this._cache.getClaimsForToken(accessToken);
         if (cachedClaims) {
-            this._logger.debug('Existing claims returned from cache');
+            this._debugLogger.debug('Existing claims returned from cache');
             return cachedClaims;
         }
 
         // Otherwise create new claims which we will populate
         const claims = this._claimsSupplier();
 
-        // Introspect the token and set token claims, and a failed result indicates no valid token
+        // Introspect the token and set claims
         const [tokenSuccess, expiry] = await this._authenticator.validateTokenAndSetClaims(accessToken, claims);
         if (!tokenSuccess) {
-            this._logger.debug('Invalid or expired access token received');
-            return null;
-        }
-
-        // Next add central user info claims, and expiry is a race condition possibility here also
-        const userInfoSuccess = await this._authenticator.setCentralUserInfoClaims(accessToken, claims);
-        if (!userInfoSuccess) {
-            this._logger.debug('Expired access token used for user info lookup');
+            this._debugLogger.debug('Invalid or expired access token received');
             return null;
         }
 
@@ -92,7 +85,7 @@ export class ClaimsMiddleware<TClaims extends CoreApiClaims> {
         // Cache the claims against the token hash until the token's expiry time
         // The next time the API is called, all of the above results can be quickly looked up
         await this._cache.addClaimsForToken(accessToken, expiry, claims);
-        this._logger.debug('Claims lookup for new token completed successfully');
+        this._debugLogger.debug('Claims lookup for new token completed successfully');
         return claims;
     }
 }

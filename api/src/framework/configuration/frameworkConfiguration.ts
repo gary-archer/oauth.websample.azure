@@ -4,8 +4,7 @@
 export interface FrameworkConfiguration {
     apiName: string;
     authority: string;
-    clientId: string;
-    clientSecret: string;
+    audience: string;
     maxTokenCacheMinutes: number;
     logging: any;
 }

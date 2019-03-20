@@ -1,8 +1,12 @@
 import * as got from 'got';
 import {inject, injectable} from 'inversify';
+import * as jwt from 'jsonwebtoken';
+import * as jwks from 'jwks-rsa';
+import {Logger} from 'winston';
 import {FrameworkConfiguration} from '../configuration/frameworkConfiguration';
 import {FRAMEWORKTYPES} from '../configuration/frameworkTypes';
 import {OAuthErrorHandler} from '../errors/oauthErrorHandler';
+import {ILoggerFactory} from '../extensibility/iloggerFactory';
 import {LogEntry} from '../logging/logEntry';
 import {DebugProxyAgent} from '../utilities/debugProxyAgent';
 import {using} from '../utilities/using';
@@ -21,6 +25,7 @@ export class Authenticator {
     private readonly _configuration: FrameworkConfiguration;
     private readonly _issuer: any;
     private readonly _logEntry: LogEntry;
+    private readonly _debugLogger: Logger;
 
     /*
      * Receive dependencies
@@ -28,11 +33,13 @@ export class Authenticator {
     public constructor(
         @inject(FRAMEWORKTYPES.Configuration) configuration: FrameworkConfiguration,
         @inject(FRAMEWORKTYPES.IssuerMetadata) metadata: IssuerMetadata,
+        @inject(FRAMEWORKTYPES.LoggerFactory) loggerFactory: ILoggerFactory,
         @inject(FRAMEWORKTYPES.LogEntry) logEntry: LogEntry) {
 
         this._configuration = configuration;
         this._issuer = metadata.issuer;
         this._logEntry = logEntry;
+        this._debugLogger = loggerFactory.createDevelopmentLogger(Authenticator.name);
         this._setupCallbacks();
     }
 
@@ -60,82 +67,120 @@ export class Authenticator {
      */
     public async validateTokenAndSetClaims(accessToken: string, claims: CoreApiClaims): Promise<[boolean, number]> {
 
+        // TODO: Log a 401 with context
+        // Return a ClientError | null rather than a boolean
+        // Change sample3 to use debug logger and to log 401 error bodies
+
         const performance = this._logEntry.createPerformanceBreakdown('validateToken');
         return using(performance, async () => {
 
-            // Create the Authorization Server client
-            const client = new this._issuer.Client({
-                client_id: this._configuration.clientId,
-                client_secret: this._configuration.clientSecret,
-            });
+            // First decoode the token without verifying it so that we get the key identifier
+            const decoded = jwt.decode(accessToken, {complete: true});
+            if (!decoded) {
 
-            try {
-
-                // Make a client request to do the introspection
-                const tokenData = await client.introspect(accessToken);
-
-                // Return an invalid result if the token is invalid or expired
-                if (!tokenData.active) {
-                    return [false, 0];
-                }
-
-                // Read protocol claims and we will use the immutable user id as the subject claim
-                const userId = this._getClaim(tokenData.uid, 'uid');
-                const clientId = this._getClaim(tokenData.client_id, 'client_id');
-                const scope = this._getClaim(tokenData.scope, 'scope');
-                const expiry = this._getClaim(tokenData.exp, 'exp');
-
-                // Update the claims object and also include the expiry
-                claims.setTokenInfo(userId, clientId, scope.split(' '));
-                return [true, expiry];
-
-            } catch (e) {
-
-                // Report introspection errors clearly
-                const handler = new OAuthErrorHandler(this._configuration);
-                throw handler.fromIntrospectionError(e, this._issuer.introspection_endpoint);
+                // Indicate an invalid token if we cannot decode it
+                this._debugLogger.debug('Unable to decode received JWT');
+                return [false, 0];
             }
+
+            // Get the key identifier from the JWT header
+            const keyIdentifier = decoded.header.kid;
+            this._debugLogger.debug(`Token key identifier is ${keyIdentifier}`);
+
+            // Download the token signing public key for the key identifier
+            const tokenSigningPublicKey = await this._downloadJwksKeyForKeyIdentifier(keyIdentifier);
+            if (!tokenSigningPublicKey) {
+                return [false, 0];
+            }
+
+            // Use a library to verify the token's signature, issuer, audience and that it is not expired
+            this._debugLogger.debug(`Token signing public key for ${keyIdentifier} downloaded successfully`);
+            const [isValid, tokenData] = this._validateTokenInMemory(accessToken, tokenSigningPublicKey);
+
+            // Indicate an invalid token if it failed verification
+            if (!isValid) {
+                this._debugLogger.debug(`JWT verification failed: ${tokenData}`);
+                return [false, 0];
+            }
+
+            // Read protocol claims and we will use the immutable user id as the subject claim
+            const userId = this._getClaim(tokenData.oid, 'oid');
+            const clientId = this._getClaim(tokenData.appid, 'appid');
+            const scope = this._getClaim(tokenData.scp, 'scp');
+            const expiry = this._getClaim(tokenData.exp, 'exp');
+
+            // Set token claims
+            claims.setTokenInfo(userId, clientId, scope.split(' '));
+
+            // Azure includes user info in the access token
+            const givenName = this._getClaim(tokenData.given_name, 'given_name');
+            const familyName = this._getClaim(tokenData.family_name, 'family_name');
+            const email = this._getClaim(tokenData.email, 'email');
+            claims.setCentralUserInfo(givenName, familyName, email);
+
+            // Indicate success and return the expiry for claims caching
+            return [true, expiry];
         });
     }
 
     /*
-     * We will read central user data by calling the Open Id Connect User Info endpoint
-     * For many companies it may instead make sense to call a Central User Info API
+     * Download the public key with which our access token is signed
      */
-    public async setCentralUserInfoClaims(accessToken: string, claims: CoreApiClaims): Promise<boolean> {
+    private async _downloadJwksKeyForKeyIdentifier(tokenKeyIdentifier: string): Promise<string | null> {
 
-        const performance = this._logEntry.createPerformanceBreakdown('userInfoLookup');
-        return using(performance, async () => {
+        return new Promise<string | null>((resolve, reject) => {
 
-            // Create the Authorization Server client
-            const client = new this._issuer.Client();
+            // Create the client to download the signing key from Azure
+            const client = jwks({
+                strictSsl: DebugProxyAgent.isDebuggingActive() ? false : true,
+                cache: false,
+                jwksUri: this._issuer.jwks_uri,
+            });
 
-            try {
-                // Get the user info
-                const response = await client.userinfo(accessToken);
+            // Make a call to get the signing key
+            this._debugLogger.debug('Token validation', `Downloading JWKS key from: ${this._issuer.jwks_uri}`);
+            client.getSigningKeys((err: any, keys: jwks.Jwk[]) => {
 
-                // Read user info claims
-                const givenName = this._getClaim(response.given_name, 'given_name');
-                const familyName = this._getClaim(response.family_name, 'family_name');
-                const email = this._getClaim(response.email, 'email');
-
-                // Update the claims object and indicate success
-                claims.setCentralUserInfo(givenName, familyName, email);
-                return true;
-
-            } catch (e) {
-
-                // Handle a race condition where the access token expires just after introspection
-                // In this case we return false to indicate expiry
-                if (e.error && e.error === 'invalid_token') {
-                    return false;
+                // Handle errors
+                if (err) {
+                    const handler = new OAuthErrorHandler(this._configuration);
+                    return reject(handler.fromSigningKeysDownloadError(err, this._issuer.jwks_uri));
                 }
 
-                // Otherwise log and throw user info
-                const handler = new OAuthErrorHandler(this._configuration);
-                throw handler.fromUserInfoError(e, this._issuer.userinfo_endpoint);
-            }
+                // Find the key in the download
+                const key = keys.find((k) => k.kid === tokenKeyIdentifier);
+                if (key) {
+                    return resolve(key.publicKey || key.rsaPublicKey);
+                }
+
+                // Indicate not found
+                this._debugLogger.debug(`Failed to find JWKS key with identifier: ${tokenKeyIdentifier}`);
+                return resolve(null);
+            });
         });
+    }
+
+    /*
+     * Call a third party library to do the token validation, and return token claims
+     */
+    private _validateTokenInMemory(accessToken: string, tokenSigningPublicKey: string): [boolean, any] {
+
+        try {
+
+            // Verify the token's signature, issuer, audience and that it is not expired
+            const options = {
+                audience: this._configuration.audience,
+                issuer: this._issuer.issuer,
+            };
+
+            const claims = jwt.verify(accessToken, tokenSigningPublicKey, options);
+            return [true, claims];
+
+        } catch (e) {
+
+            // Indicate failure
+            return [false, e];
+        }
     }
 
     /*
@@ -156,6 +201,5 @@ export class Authenticator {
      */
     private _setupCallbacks(): void {
         this.validateTokenAndSetClaims = this.validateTokenAndSetClaims.bind(this);
-        this.setCentralUserInfoClaims = this.setCentralUserInfoClaims.bind(this);
     }
 }

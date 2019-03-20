@@ -40,36 +40,6 @@ export class OAuthErrorHandler {
     }
 
     /*
-     * Handle the request promise error for introspection failures
-     */
-    public fromIntrospectionError(responseError: any, url: string): ApiError {
-
-        if (responseError instanceof ApiError) {
-            return responseError;
-        }
-
-        const [code, description] = this._readOAuthErrorResponse(responseError);
-        const apiError = this._createOAuthApiError('introspection_failure', 'Token validation failed', code);
-        apiError.details = this._getErrorDetails(description, responseError, url);
-        return apiError;
-    }
-
-    /*
-     * Handle user info lookup failures
-     */
-    public fromUserInfoError(responseError: any, url: string): ApiError {
-
-        if (responseError instanceof ApiError) {
-            return responseError;
-        }
-
-        const [code, description] = this._readOAuthErrorResponse(responseError);
-        const apiError = this._createOAuthApiError('userinfo_failure', 'User info lookup failed', code);
-        apiError.details = this._getErrorDetails(description, responseError, url);
-        return apiError;
-    }
-
-    /*
      * The error thrown if we cannot find an expected claim during OAuth processing
      */
     public fromMissingClaim(claimName: string): ApiError {
