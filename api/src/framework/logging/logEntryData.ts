@@ -163,7 +163,7 @@ export class LogEntryData {
      * Add error details if applicable
      */
     private _outputError(data: any): void {
-        if (this.errorData !== null && this.statusCode !== 401) {
+        if (this.errorData !== null) {
 
             // Get the error data in its log format
             const loggedError = this.errorData.toLogFormat();

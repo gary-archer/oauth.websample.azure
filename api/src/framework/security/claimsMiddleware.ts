@@ -6,6 +6,7 @@ import {ILoggerFactory} from '../extensibility/iloggerFactory';
 import {Authenticator} from './authenticator';
 import {ClaimsCache} from './claimsCache';
 import {CoreApiClaims} from './coreApiClaims';
+import { ClientError } from '..';
 
 /*
  * The entry point for the processing to validate tokens and return claims
@@ -54,12 +55,15 @@ export class ClaimsMiddleware<TClaims extends CoreApiClaims> {
      * A null response indicates invalid or expired tokens which will result in a 401
      * An error response is also possiblem, which will result in a 500
      */
-    public async authorizeRequestAndGetClaims(accessToken: string | null): Promise<TClaims | null> {
+    public async authorizeRequestAndGetClaims(accessToken: string | null): Promise<TClaims> {
+
+        // TODO: Update to AuthenticationResult in websample3, use the same 401 coding model and log 401 error details
+        // Also update response types of core auth classes
+        // Make it more swappable for the case where a different authenticator is used - framework initializer specifies authenticator type
 
         // First handle missing tokens
         if (!accessToken) {
-            this._debugLogger.debug('No access token was supplied in the bearer header');
-            return null;
+            throw ClientError.create401('No access token was supplied in the bearer header');
         }
 
         // Bypass and use cached results if they exist
@@ -72,12 +76,8 @@ export class ClaimsMiddleware<TClaims extends CoreApiClaims> {
         // Otherwise create new claims which we will populate
         const claims = this._claimsSupplier();
 
-        // Introspect the token and set claims
-        const [tokenSuccess, expiry] = await this._authenticator.validateTokenAndSetClaims(accessToken, claims);
-        if (!tokenSuccess) {
-            this._debugLogger.debug('Invalid or expired access token received');
-            return null;
-        }
+        // Process the token and set claims
+        const expiry = await this._authenticator.validateTokenAndSetClaims(accessToken, claims);
 
         // Add any custom product specific custom claims
         await this._customClaimsProviderSupplier().addCustomClaims(accessToken, claims);

@@ -7,7 +7,16 @@ import {IClientError} from '../extensibility/iclientError';
 export class ClientError extends Error implements IClientError {
 
     /*
-     * Common fields
+     * A helper method to return a 401 error
+     */
+    public static create401(reason: string): ClientError {
+        const error = new ClientError(401, 'unauthorized', 'Missing, invalid or expired access token');
+        error.LogContext = reason;
+        return error;
+    }
+
+    /*
+     * Fields in all client errors
      */
     private readonly _statusCode: number;
     private readonly _errorCode: string;

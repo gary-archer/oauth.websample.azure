@@ -49,18 +49,20 @@ export class AuthenticationFilter<TClaims extends CoreApiClaims> {
 
         } else {
 
-            // Otherwise do OAuth processing
-            const claims = await this._authorizeApiRequest(request, response);
-            if (claims) {
+            try {
+                // Otherwise do security processing
+                const result = await this._authorizeApiRequest(request, response);
 
                 // On success, move on to the controller logic
                 next();
 
-            } else {
+            } catch (e) {
+
+                // TODO: Catch here and handle ClientErrors but rethrow 500 errors
 
                 // Otherwise return a 401 response
                 const writer = new ResponseWriter();
-                writer.writeInvalidTokenResponse(response);
+                writer.writeInvalidTokenResponse(response, e);
             }
         }
     }
@@ -68,38 +70,29 @@ export class AuthenticationFilter<TClaims extends CoreApiClaims> {
     /*
      * Do the authorization work and return claims on success
      */
-    private async _authorizeApiRequest(request: Request, response: Response): Promise<TClaims | null> {
+    private async _authorizeApiRequest(request: Request, response: Response): Promise<void> {
 
-        // Try to get the access token and create empty claims
+        // Try to get the access token
         const accessToken = this._readAccessToken(request);
 
-        // Create the claims middleware for this request and set callbacks
+        // Create the claims middleware for this request and provide callbacks used to prevent type erasure
         const httpContext = this._contextAccessor.getHttpContext(request);
         const middleware = httpContext.container.get<ClaimsMiddleware<TClaims>>(FRAMEWORKTYPES.ClaimsMiddleware)
                                       .withClaimsSupplier(this._claimsSupplier)
                                       .withCustomClaimsProviderSupplier(this._customClaimsProviderSupplier);
 
-        // Call the middleware to process the access token and return claims
+        // Call the middleware to process the access token and get claims
         const claims = await middleware.authorizeRequestAndGetClaims(accessToken);
-        if (!claims) {
+        
+        // Set the user against the HTTP context, as expected by inversify express
+        httpContext.user = new CustomPrincipal(claims);
 
-            // Non success responses mean a missing, expired or invalid token, and we will return 401
-            return null;
-        } else {
+        // Log who called the API
+        const logEntry = httpContext.container.get<LogEntry>(FRAMEWORKTYPES.LogEntry);
+        logEntry.setIdentity(claims);
 
-            // Set the user against the HTTP context, as expected by inversify express
-            httpContext.user = new CustomPrincipal(claims);
-
-            // Log who called the API
-            const logEntry = httpContext.container.get<LogEntry>(FRAMEWORKTYPES.LogEntry);
-            logEntry.setIdentity(claims);
-
-            // Register the claims against this requests's child container so that they can be injected into controllers
-            httpContext.container.bind<TClaims>(FRAMEWORKTYPES.ApiClaims).toConstantValue(claims);
-
-            // On success, set claims against the request context and move on to the controller logic
-            return claims;
-        }
+        // Register the claims against this requests's child container so that they can be injected into controllers
+        httpContext.container.bind<TClaims>(FRAMEWORKTYPES.ApiClaims).toConstantValue(claims);
     }
 
     /*

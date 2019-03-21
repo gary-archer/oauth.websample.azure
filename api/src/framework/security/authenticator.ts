@@ -12,6 +12,7 @@ import {DebugProxyAgent} from '../utilities/debugProxyAgent';
 import {using} from '../utilities/using';
 import {CoreApiClaims} from './coreApiClaims';
 import {IssuerMetadata} from './issuerMetadata';
+import {ClientError} from '../errors/clientError';
 
 /*
  * The entry point for OAuth related operations
@@ -65,11 +66,7 @@ export class Authenticator {
     /*
      * Make a call to the introspection endpoint to read our token
      */
-    public async validateTokenAndSetClaims(accessToken: string, claims: CoreApiClaims): Promise<[boolean, number]> {
-
-        // TODO: Log a 401 with context
-        // Return a ClientError | null rather than a boolean
-        // Change sample3 to use debug logger and to log 401 error bodies
+    public async validateTokenAndSetClaims(accessToken: string, claims: CoreApiClaims): Promise<number> {
 
         const performance = this._logEntry.createPerformanceBreakdown('validateToken');
         return using(performance, async () => {
@@ -77,10 +74,7 @@ export class Authenticator {
             // First decoode the token without verifying it so that we get the key identifier
             const decoded = jwt.decode(accessToken, {complete: true});
             if (!decoded) {
-
-                // Indicate an invalid token if we cannot decode it
-                this._debugLogger.debug('Unable to decode received JWT');
-                return [false, 0];
+                throw ClientError.create401('Unable to decode received JWT');
             }
 
             // Get the key identifier from the JWT header
@@ -90,7 +84,7 @@ export class Authenticator {
             // Download the token signing public key for the key identifier
             const tokenSigningPublicKey = await this._downloadJwksKeyForKeyIdentifier(keyIdentifier);
             if (!tokenSigningPublicKey) {
-                return [false, 0];
+                throw ClientError.create401(`Failed to find JWKS key with identifier: ${keyIdentifier}`);
             }
 
             // Use a library to verify the token's signature, issuer, audience and that it is not expired
@@ -99,8 +93,7 @@ export class Authenticator {
 
             // Indicate an invalid token if it failed verification
             if (!isValid) {
-                this._debugLogger.debug(`JWT verification failed: ${tokenData}`);
-                return [false, 0];
+                throw ClientError.create401(`JWT verification failed: ${tokenData}`);
             }
 
             // Read protocol claims and we will use the immutable user id as the subject claim
@@ -118,8 +111,8 @@ export class Authenticator {
             const email = this._getClaim(tokenData.email, 'email');
             claims.setCentralUserInfo(givenName, familyName, email);
 
-            // Indicate success and return the expiry for claims caching
-            return [true, expiry];
+            // Return the expiry for claims caching
+            return expiry;
         });
     }
 
@@ -138,7 +131,6 @@ export class Authenticator {
             });
 
             // Make a call to get the signing key
-            this._debugLogger.debug('Token validation', `Downloading JWKS key from: ${this._issuer.jwks_uri}`);
             client.getSigningKeys((err: any, keys: jwks.Jwk[]) => {
 
                 // Handle errors
@@ -154,7 +146,6 @@ export class Authenticator {
                 }
 
                 // Indicate not found
-                this._debugLogger.debug(`Failed to find JWKS key with identifier: ${tokenKeyIdentifier}`);
                 return resolve(null);
             });
         });

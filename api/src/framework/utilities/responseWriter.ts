@@ -1,4 +1,4 @@
-import {Request, Response} from 'express';
+import {Response} from 'express';
 import {ClientError} from '../errors/clientError';
 
 /*
@@ -21,14 +21,13 @@ export class ResponseWriter {
     /*
      * Return a 401 response specially
      */
-    public writeInvalidTokenResponse(response: Response) {
+    public writeInvalidTokenResponse(response: Response, error: ClientError) {
 
         // Write standard headers
         response.setHeader('Content-Type', 'application/json');
         response.setHeader('WWW-Authenticate', 'Bearer');
 
         // Write the error data
-        const error = new ClientError(401, 'unauthorized', 'Missing, invalid or expired access token');
         response.status(error.getStatusCode()).send(JSON.stringify(error.toResponseFormat()));
     }
 }
