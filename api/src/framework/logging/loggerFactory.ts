@@ -131,7 +131,6 @@ export class LoggerFactory implements ILoggerFactory {
      */
     private _setPerformanceThresholds(performance: any) {
 
-        // TODO: change sample 3
         if (performance.thresholdMilliseconds >= 0) {
             this._defaultPerformanceThresholdMilliseconds = performance.thresholdMilliseconds;
         }

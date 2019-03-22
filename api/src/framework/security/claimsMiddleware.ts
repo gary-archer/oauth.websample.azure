@@ -1,12 +1,12 @@
 import {inject, injectable} from 'inversify';
 import {Logger} from 'winston';
 import {FRAMEWORKTYPES} from '../configuration/frameworkTypes';
+import {ClientError} from '../errors/clientError';
 import {ICustomClaimsProvider} from '../extensibility/icustomClaimsProvider';
 import {ILoggerFactory} from '../extensibility/iloggerFactory';
 import {Authenticator} from './authenticator';
 import {ClaimsCache} from './claimsCache';
 import {CoreApiClaims} from './coreApiClaims';
-import { ClientError } from '..';
 
 /*
  * The entry point for the processing to validate tokens and return claims
@@ -57,10 +57,6 @@ export class ClaimsMiddleware<TClaims extends CoreApiClaims> {
      */
     public async authorizeRequestAndGetClaims(accessToken: string | null): Promise<TClaims> {
 
-        // TODO: Update to AuthenticationResult in websample3, use the same 401 coding model and log 401 error details
-        // Also update response types of core auth classes
-        // Make it more swappable for the case where a different authenticator is used - framework initializer specifies authenticator type
-
         // First handle missing tokens
         if (!accessToken) {
             throw ClientError.create401('No access token was supplied in the bearer header');
@@ -76,8 +72,9 @@ export class ClaimsMiddleware<TClaims extends CoreApiClaims> {
         // Otherwise create new claims which we will populate
         const claims = this._claimsSupplier();
 
-        // Process the token and set claims
-        const expiry = await this._authenticator.validateTokenAndSetClaims(accessToken, claims);
+        // Do the authentication work to get claims, which in our case means OAuth processing
+        // However, internal APIs could do their authentication just by processing headers instead
+        const expiry = await this._authenticator.authenticateAndSetClaims(accessToken, claims);
 
         // Add any custom product specific custom claims
         await this._customClaimsProviderSupplier().addCustomClaims(accessToken, claims);

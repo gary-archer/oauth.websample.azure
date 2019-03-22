@@ -13,21 +13,11 @@ export class ResponseWriter {
 
         // Write headers
         response.setHeader('Content-Type', 'application/json');
+        if (statusCode === 401) {
+            response.setHeader('WWW-Authenticate', 'Bearer');
+        }
 
         // Write the response data
         response.status(statusCode).send(JSON.stringify(data));
-    }
-
-    /*
-     * Return a 401 response specially
-     */
-    public writeInvalidTokenResponse(response: Response, error: ClientError) {
-
-        // Write standard headers
-        response.setHeader('Content-Type', 'application/json');
-        response.setHeader('WWW-Authenticate', 'Bearer');
-
-        // Write the error data
-        response.status(error.getStatusCode()).send(JSON.stringify(error.toResponseFormat()));
     }
 }

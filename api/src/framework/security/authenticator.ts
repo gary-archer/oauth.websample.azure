@@ -5,6 +5,7 @@ import * as jwks from 'jwks-rsa';
 import {Logger} from 'winston';
 import {FrameworkConfiguration} from '../configuration/frameworkConfiguration';
 import {FRAMEWORKTYPES} from '../configuration/frameworkTypes';
+import {ClientError} from '../errors/clientError';
 import {OAuthErrorHandler} from '../errors/oauthErrorHandler';
 import {ILoggerFactory} from '../extensibility/iloggerFactory';
 import {LogEntry} from '../logging/logEntry';
@@ -12,7 +13,6 @@ import {DebugProxyAgent} from '../utilities/debugProxyAgent';
 import {using} from '../utilities/using';
 import {CoreApiClaims} from './coreApiClaims';
 import {IssuerMetadata} from './issuerMetadata';
-import {ClientError} from '../errors/clientError';
 
 /*
  * The entry point for OAuth related operations
@@ -66,7 +66,7 @@ export class Authenticator {
     /*
      * Make a call to the introspection endpoint to read our token
      */
-    public async validateTokenAndSetClaims(accessToken: string, claims: CoreApiClaims): Promise<number> {
+    public async authenticateAndSetClaims(accessToken: string, claims: CoreApiClaims): Promise<number> {
 
         const performance = this._logEntry.createPerformanceBreakdown('validateToken');
         return using(performance, async () => {
@@ -191,6 +191,6 @@ export class Authenticator {
      * Plumbing to ensure that the this parameter is available in async callbacks
      */
     private _setupCallbacks(): void {
-        this.validateTokenAndSetClaims = this.validateTokenAndSetClaims.bind(this);
+        this.authenticateAndSetClaims = this.authenticateAndSetClaims.bind(this);
     }
 }

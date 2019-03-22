@@ -100,7 +100,7 @@ export class LogEntryData {
     public toLogFormat() {
         const data: any = {};
 
-        // Add fields which will be used as top level queryable columns
+        // Output fields used as top level queryable columns
         this._outputString((x) => data.utcTime = x, this.utcTime.toISOString());
         this._outputString((x) => data.apiName = x, this.apiName);
         this._outputString((x) => data.operationName = x, this.operationName);
@@ -113,12 +113,21 @@ export class LogEntryData {
         this._outputNumber((x) => data.statusCode = x, this.statusCode);
         this._outputNumber((x) => data.millisecondsTaken = x, this.performance.millisecondsTaken);
         this._outputNumber((x) => data.millisecondsThreshold = x, this.performanceThresholdMilliseconds);
-        this._outputString((x) => data.errorCode = x, this.errorCode);
-        this._outputNumber((x) => data.errorId = x, this.errorId);
+
+        if (this.errorData) {
+            const loggedError = this.errorData.toLogFormat();
+            if (loggedError.clientError.code) {
+                data.errorCode = loggedError.clientError.code;
+            }
+            if (loggedError.clientError.id) {
+                data.errorId = loggedError.clientError.id;
+            }
+        }
+
         this._outputString((x) => data.correlationId = x, this.correlationId);
         this._outputString((x) => data.batchId = x, this.batchId);
 
-        // Add more detailed data, which will be looked up via top level fields
+        // Output object data, which is looked up via top level fields
         this._outputPerformance(data);
         this._outputError(data);
         this._outputInfo(data);

@@ -4,7 +4,6 @@ import {FRAMEWORKTYPES} from '../configuration/frameworkTypes';
 import {ICustomClaimsProvider} from '../extensibility/icustomClaimsProvider';
 import {LogEntry} from '../logging/logEntry';
 import {HttpContextAccessor} from '../utilities/httpContextAccessor';
-import {ResponseWriter} from '../utilities/responseWriter';
 import {ClaimsMiddleware} from './claimsMiddleware';
 import {CoreApiClaims} from './coreApiClaims';
 import {CustomPrincipal} from './customPrincipal';
@@ -49,50 +48,31 @@ export class AuthenticationFilter<TClaims extends CoreApiClaims> {
 
         } else {
 
-            try {
-                // Otherwise do security processing
-                const result = await this._authorizeApiRequest(request, response);
+            // Otherwise first get the access token
+            const accessToken = this._readAccessToken(request);
 
-                // On success, move on to the controller logic
-                next();
+            // Create the claims middleware for this request and provide callbacks used to prevent type erasure
+            const httpContext = this._contextAccessor.getHttpContext(request);
+            const middleware = httpContext.container.get<ClaimsMiddleware<TClaims>>(FRAMEWORKTYPES.ClaimsMiddleware)
+                                        .withClaimsSupplier(this._claimsSupplier)
+                                        .withCustomClaimsProviderSupplier(this._customClaimsProviderSupplier);
 
-            } catch (e) {
+            // Call the middleware to process the access token and get claims
+            const claims = await middleware.authorizeRequestAndGetClaims(accessToken);
 
-                // TODO: Catch here and handle ClientErrors but rethrow 500 errors
+            // Set the user against the HTTP context, as expected by inversify express
+            httpContext.user = new CustomPrincipal(claims);
 
-                // Otherwise return a 401 response
-                const writer = new ResponseWriter();
-                writer.writeInvalidTokenResponse(response, e);
-            }
+            // Log who called the API
+            const logEntry = httpContext.container.get<LogEntry>(FRAMEWORKTYPES.LogEntry);
+            logEntry.setIdentity(claims);
+
+            // Register the claims against this requests's child container so that they can be injected into controllers
+            httpContext.container.bind<TClaims>(FRAMEWORKTYPES.ApiClaims).toConstantValue(claims);
+
+            // On success, move on to the controller logic
+            next();
         }
-    }
-
-    /*
-     * Do the authorization work and return claims on success
-     */
-    private async _authorizeApiRequest(request: Request, response: Response): Promise<void> {
-
-        // Try to get the access token
-        const accessToken = this._readAccessToken(request);
-
-        // Create the claims middleware for this request and provide callbacks used to prevent type erasure
-        const httpContext = this._contextAccessor.getHttpContext(request);
-        const middleware = httpContext.container.get<ClaimsMiddleware<TClaims>>(FRAMEWORKTYPES.ClaimsMiddleware)
-                                      .withClaimsSupplier(this._claimsSupplier)
-                                      .withCustomClaimsProviderSupplier(this._customClaimsProviderSupplier);
-
-        // Call the middleware to process the access token and get claims
-        const claims = await middleware.authorizeRequestAndGetClaims(accessToken);
-        
-        // Set the user against the HTTP context, as expected by inversify express
-        httpContext.user = new CustomPrincipal(claims);
-
-        // Log who called the API
-        const logEntry = httpContext.container.get<LogEntry>(FRAMEWORKTYPES.LogEntry);
-        logEntry.setIdentity(claims);
-
-        // Register the claims against this requests's child container so that they can be injected into controllers
-        httpContext.container.bind<TClaims>(FRAMEWORKTYPES.ApiClaims).toConstantValue(claims);
     }
 
     /*
