@@ -1,0 +1,16 @@
+{
+    "api": {
+        "sslCertificateFileName": "mycompany.ssl.pfx",
+        "sslCertificatePassword": "SslPassword1",
+        "trustedOrigins": [
+            "https://web.mycompany.com"
+        ],
+        "useProxy": false,
+        "proxyUrl": "http://127.0.0.1:8888"
+    },
+    "oauth": {
+        "authority":    		"https://login.microsoftonline.com/7f071fbc-8bf2-4e61-bb48-dabd8e2f5b5a",
+        "audience":     		"https://garyarcher36gmail.onmicrosoft.com/1a0bcc51-198c-476c-89bf-ba2db016fbe7",
+        "maxClaimsCacheMinutes": 60
+    }
+}

@@ -1,0 +1,13 @@
+{
+    "app": {
+        "apiBaseUrl":       "https://api.mycompany.com/api"
+    },
+    "oauth": {
+		"authority":       "https://login.microsoftonline.com/7f071fbc-8bf2-4e61-bb48-dabd8e2f5b5a",
+        "clientId":        "0ed1c9d0-68e7-4acc-abd1-a0efab2643c8",
+        "appUri":          "https://web.mycompany.com/spa/",
+        "postLogoutPath":  "#loggedout",
+        "scope":           "openid email profile",
+        "resource":        "https://garyarcher36gmail.onmicrosoft.com/1a0bcc51-198c-476c-89bf-ba2db016fbe7"
+    }
+}
