@@ -33,6 +33,9 @@ export class Authenticator {
             const response = await got(this._issuer.metadata.jwks_uri, {
                 json: true,
                 agent: DebugProxyAgent.get(),
+                timeout: 10000,
+                retry: 0,
+                
             });
             return response.body;
 
