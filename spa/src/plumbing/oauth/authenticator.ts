@@ -32,11 +32,6 @@ export class Authenticator {
             loadUserInfo: false,
             automaticSilentRenew: true,
             monitorSession: false,
-
-            // Indicate the API our access token is for
-            extraQueryParams: {
-                resource: config.resource,
-            },
         } as UserManagerSettings;
 
         // Create the user manager

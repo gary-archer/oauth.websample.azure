@@ -53,7 +53,7 @@ export class Authenticator {
 
         // Read protocol claims and we will use the immutable user id as the subject claim
         const userId = this._getClaim(tokenData.oid, 'oid');
-        const clientId = this._getClaim(tokenData.appid, 'appid');
+        const clientId = ''; // this._getClaim(tokenData.appid, 'appid');
         const scope = this._getClaim(tokenData.scp, 'scp');
         const expiry = this._getClaim(tokenData.exp, 'exp');
 
@@ -61,9 +61,9 @@ export class Authenticator {
         claims.setTokenInfo(userId, clientId, scope.split(' '));
 
         // Azure includes user info in the access token
-        const givenName = this._getClaim(tokenData.given_name, 'given_name');
-        const familyName = this._getClaim(tokenData.family_name, 'family_name');
-        const email = this._getClaim(tokenData.email, 'email');
+        const givenName = ''; // this._getClaim(tokenData.given_name, 'given_name');
+        const familyName = ''; // this._getClaim(tokenData.family_name, 'family_name');
+        const email = ''; // this._getClaim(tokenData.email, 'email');
         claims.setCentralUserInfo(givenName, familyName, email);
 
         // Return the expiry for claims caching
