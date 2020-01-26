@@ -10,7 +10,7 @@
     },
     "oauth": {
         "authority":    		"https://login.microsoftonline.com/7f071fbc-8bf2-4e61-bb48-dabd8e2f5b5a",
-        "audience":     		"https://garyarcher36gmail.onmicrosoft.com/1a0bcc51-198c-476c-89bf-ba2db016fbe7",
+        "audience":     		"api://83aabb54-22dd-44f2-b853-94ee044c9fd6",
         "maxClaimsCacheMinutes": 60
     }
 }

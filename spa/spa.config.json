@@ -4,10 +4,11 @@
     },
     "oauth": {
         "authority":       "https://login.microsoftonline.com/7f071fbc-8bf2-4e61-bb48-dabd8e2f5b5a",
-        "clientId":        "0ed1c9d0-68e7-4acc-abd1-a0efab2643c8",
+        "clientId":        "cc281240-4d9a-42fd-808d-6e57cd987339",
+        "clientId1":       "0ed1c9d0-68e7-4acc-abd1-a0efab2643c8",
         "appUri":          "https://web.mycompany.com/spa/",
         "postLogoutPath":  "#loggedout",
         "scope":           "openid profile email",
-        "resource":        "https://garyarcher36gmail.onmicrosoft.com/1a0bcc51-198c-476c-89bf-ba2db016fbe7"
+        "resource":        "api://83aabb54-22dd-44f2-b853-94ee044c9fd6"
     }
 }
