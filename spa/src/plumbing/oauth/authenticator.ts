@@ -18,7 +18,7 @@ export class Authenticator {
     /*
      * OIDC Client setup
      */
-    public constructor(config: OAuthConfiguration, tokenSigningKeys: any) {
+    public constructor(config: OAuthConfiguration) {
 
         // Create OIDC settings from our application configuration
         const settings = {
@@ -37,9 +37,6 @@ export class Authenticator {
             extraQueryParams: {
                 resource: config.resource,
             },
-
-            // Set signing keys manually to work around Azure AD not allowing CORS requests to download them
-            signingKeys: tokenSigningKeys,
         } as UserManagerSettings;
 
         // Create the user manager

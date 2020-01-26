@@ -64,19 +64,6 @@ export class Router {
     }
 
     /*
-     * Download token signing keys to the SPA via a double hop, to work around a cross origin request error
-     */
-    public async getTokenSigningKeys(request: Request, response: Response, next: NextFunction): Promise<any> {
-
-        // Get the keys
-        const authenticator = new Authenticator(this._apiConfig.oauth, this._issuerMetadata.issuer);
-        const signingKeys = await authenticator.getTokenSigningKeys();
-
-        // Return them in a raw form, as expected by the SPA's security library
-        ResponseWriter.writeObjectResponse(response, 200, signingKeys);
-    }
-
-    /*
      * Return the user info claims from authorization
      */
     public getUserClaims(request: Request, response: Response, next: NextFunction): void {
@@ -135,7 +122,6 @@ export class Router {
      */
     private _setupCallbacks(): void {
         this.authorizationHandler = this.authorizationHandler.bind(this);
-        this.getTokenSigningKeys = this.getTokenSigningKeys.bind(this);
         this.getUserClaims = this.getUserClaims.bind(this);
         this.getCompanyList = this.getCompanyList.bind(this);
         this.getCompanyTransactions = this.getCompanyTransactions.bind(this);

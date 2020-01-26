@@ -1,4 +1,3 @@
-import got from 'got';
 import jsonwebtoken from 'jsonwebtoken';
 import jwkToPem from 'jwk-to-pem';
 import {Client, Issuer} from 'openid-client';
@@ -7,7 +6,6 @@ import {ClientError} from '../../logic/errors/clientError';
 import {OAuthConfiguration} from '../configuration/oauthConfiguration';
 import {ErrorHandler} from '../errors/errorHandler';
 import {ApiLogger} from '../utilities/apiLogger';
-import {DebugProxyAgent} from '../utilities/debugProxyAgent';
 
 /*
  * The entry point for OAuth related operations
@@ -21,27 +19,6 @@ export class Authenticator {
         this._oauthConfig = oauthConfig;
         this._issuer = issuer;
         this._setupCallbacks();
-    }
-
-    /*
-     * The first public operation downloads token signing keys in a raw format for the UI
-     * This works around CORS limitations in Azure that prevent the browser making the call
-     */
-    public async getTokenSigningKeys(): Promise<any> {
-
-        try {
-            const response = await got(this._issuer.metadata.jwks_uri, {
-                json: true,
-                agent: DebugProxyAgent.get(),
-                timeout: 10000,
-                retry: 0,
-                
-            });
-            return response.body;
-
-        } catch (e) {
-            throw ErrorHandler.fromSigningKeysDownloadError(e, this._issuer.metadata.jwks_uri!);
-        }
     }
 
     /*

@@ -1,4 +1,3 @@
-import {ApiClient} from '../api/client/apiClient';
 import {ConfigurationLoader} from '../configuration/configurationLoader';
 import {ErrorCodes} from '../plumbing/errors/errorCodes';
 import {ErrorHandler} from '../plumbing/errors/errorHandler';
@@ -17,13 +16,9 @@ export class IFrameApp {
             // Download configuration
             const configuration = await ConfigurationLoader.download('spa.config.json');
 
-            // Download token signing keys to work around CORS limitations where SPAs cannot get metadata
-            const url = `${configuration.app.apiBaseUrl}/unsecure/tokensigningkeys`;
-            const tokenSigningKeys = await ApiClient.loadTokenSigningKeys(url);
-
             // Handle token renewal responses on an iframe when using Okta
             // Note that with Cognito we use refresh tokens instead
-            const handler = new TokenRenewalResponseHandler(configuration.oauth, tokenSigningKeys);
+            const handler = new TokenRenewalResponseHandler(configuration.oauth);
             await handler.handleSilentTokenRenewalResponse();
 
         } catch (e) {

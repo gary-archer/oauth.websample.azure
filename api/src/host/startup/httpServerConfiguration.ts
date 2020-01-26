@@ -43,9 +43,6 @@ export class HttpServerConfiguration {
         // API requests are authorized first
         this._expressApp.use('/api/*', this._catch(this._router.authorizationHandler));
 
-        // Token signing keys are downloaded without authorization
-        this._expressApp.get('/api/unsecure/tokensigningkeys', this._catch(this._router.getTokenSigningKeys));
-
         // API routes containing business logic are authorized
         this._expressApp.get('/api/userclaims/current', this._router.getUserClaims);
         this._expressApp.get('/api/companies', this._catch(this._router.getCompanyList));

@@ -11,25 +11,6 @@ import {UserInfoClaims} from '../entities/userInfoClaims';
 export class ApiClient {
 
     /*
-     * Azure AD does not support CORS requests to download token signing keys
-     * Therefore we make an unsecured double hop via our API
-     */
-    public static async loadTokenSigningKeys(jwksUrl: string): Promise<any> {
-        try {
-            const keyset = await $.ajax({
-                    url: jwksUrl,
-                    type: 'GET',
-                    dataType: 'json',
-                });
-            return keyset.keys;
-
-        } catch (xhr) {
-
-            throw ErrorHandler.getFromApiError(xhr, jwksUrl);
-        }
-    }
-
-    /*
      * Secured API calls use a token from the authenticator
      */
     private readonly _apiBaseUrl: string;

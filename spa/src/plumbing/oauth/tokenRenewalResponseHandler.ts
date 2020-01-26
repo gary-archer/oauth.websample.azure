@@ -13,7 +13,7 @@ export class TokenRenewalResponseHandler {
     /*
      * Initialise OAuth settings and create the UserManager
      */
-    public constructor(configuration: OAuthConfiguration, tokenSigningKeys: any) {
+    public constructor(configuration: OAuthConfiguration) {
 
         const settings = {
             authority: configuration.authority,
@@ -22,10 +22,6 @@ export class TokenRenewalResponseHandler {
             scope: configuration.scope,
             response_type: 'code',
             loadUserInfo: false,
-
-            // Set signing keys manually to work around Azure AD not allowing CORS requests to download them
-            signingKeys: tokenSigningKeys,
-
         } as UserManagerSettings;
 
         this._userManager = new UserManager(settings);

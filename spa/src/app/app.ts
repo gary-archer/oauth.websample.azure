@@ -99,12 +99,8 @@ export class App {
         // Download application configuration
         this._configuration = await ConfigurationLoader.download('spa.config.json');
 
-        // Download token signing keys to work around CORS limitations where SPAs cannot get metadata
-        const url = `${this._configuration.app.apiBaseUrl}/unsecure/tokensigningkeys`;
-        const tokenSigningKeys = await ApiClient.loadTokenSigningKeys(url);
-
         // Initialise our OIDC Client wrapper
-        this._authenticator = new Authenticator(this._configuration.oauth, tokenSigningKeys);
+        this._authenticator = new Authenticator(this._configuration.oauth);
         this._traceListener = new TraceListener();
 
         // Create a client to reliably call the API
