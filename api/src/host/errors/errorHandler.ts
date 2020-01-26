@@ -92,6 +92,30 @@ export class ErrorHandler {
         ErrorHandler._updateErrorFromHttpResponse(apiError, url, responseError);
         return apiError;
     }
+    
+    /*
+     * Handle user info lookup failures
+     */
+    public static fromUserInfoError(responseError: any, url: string): ApiError | ClientError {
+
+        // Handle a race condition where the access token expires during user info lookup
+        if (responseError.error && responseError.error === 'invalid_token') {
+            throw ClientError.create401('Access token expired during user info lookup');
+        }
+
+        // Avoid reprocessing
+        if (responseError instanceof ApiError) {
+            return responseError;
+        }
+
+        const apiError = new ApiError(
+            'userinfo_failure',
+            'User info lookup failed',
+            responseError.stack);
+
+        ErrorHandler._updateErrorFromHttpResponse(apiError, url, responseError);
+        return apiError;
+    }
 
     /*
      * The error thrown if we cannot find an expected claim during OAuth processing
