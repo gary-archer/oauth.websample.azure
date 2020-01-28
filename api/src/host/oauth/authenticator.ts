@@ -1,6 +1,6 @@
 import jsonwebtoken from 'jsonwebtoken';
 import jwkToPem from 'jwk-to-pem';
-import {Client, Issuer, UserinfoResponse} from 'openid-client';
+import {Client, Issuer} from 'openid-client';
 import {ApiClaims} from '../../logic/entities/apiClaims';
 import {ClientError} from '../../logic/errors/clientError';
 import {OAuthConfiguration} from '../configuration/oauthConfiguration';
@@ -26,14 +26,7 @@ export class Authenticator {
      */
     public async authenticateAndSetClaims(accessToken: string, claims: ApiClaims): Promise<number> {
         
-        // Our implementation validates the token to get token claims
-        const expiry = await this._validateTokenInMemoryAndSetTokenClaims(accessToken, claims);
-
-        // await this._setCentralUserInfoClaims(accessToken, claims);
-        claims.setCentralUserInfo('', '', '');
-
-        // It then returns the token expiry as a cache time to live
-        return expiry;
+        return await this._validateTokenInMemoryAndSetTokenClaims(accessToken, claims);
     }
 
     /*
@@ -61,46 +54,23 @@ export class Authenticator {
 
         // Read protocol claims and we will use the immutable user id as the subject claim
         const userId = this._getClaim(tokenData.oid, 'oid');
-        const clientId = ''; // this._getClaim(tokenData.appid, 'appid');
+        const clientId = this._getClaim(tokenData.azp, 'azp');
         const scope = this._getClaim(tokenData.scp, 'scp');
         const expiry = this._getClaim(tokenData.exp, 'exp');
 
         // Set token claims
         claims.setTokenInfo(userId, clientId, scope.split(' '));
 
+        // Read user info claims
+        const givenName = this._getClaim(tokenData.given_name, 'given_name');
+        const familyName = this._getClaim(tokenData.family_name, 'family_name');
+        const email = this._getClaim(tokenData.email, 'email');
+
+        // Set user info
+        claims.setCentralUserInfo(givenName, familyName, email);
+
         // Return the expiry for claims caching
         return expiry;
-    }
-    
-    /*
-     * We will read central user data by calling the Open Id Connect User Info endpoint
-     * For many companies it may instead make sense to call a Central User Info API
-     */
-    private async _setCentralUserInfoClaims(accessToken: string, claims: ApiClaims): Promise<void> {
-
-        // Create the Open Id Client
-        const client = new this._issuer.Client({
-            client_id: 'userinfo',
-        });
-
-        try {
-
-            // Make a user info request
-            const userInfo: UserinfoResponse = await client.userinfo(accessToken);
-
-            // Read user info claims
-            const givenName = this._getClaim(userInfo.given_name, 'given_name');
-            const familyName = this._getClaim(userInfo.family_name, 'family_name');
-            const email = this._getClaim(userInfo.email, 'email');
-
-            // Update the claims object
-            claims.setCentralUserInfo(givenName, familyName, email);
-
-        } catch (e) {
-
-            // Report user info errors clearly
-            throw ErrorHandler.fromUserInfoError(e, this._issuer.metadata.userinfo_endpoint!!);
-        }
     }
 
     /*
