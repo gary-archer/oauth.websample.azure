@@ -3,7 +3,7 @@
 ### Overview
 
 * An SPA sample using OAuth 2.0 and Open Id Connect, referenced in my blog at https://authguidance.com
-* **The goal of this sample is to show how to integrate our standards based API and SPA with Windows Azure**
+* **The goal of this sample is to show how to integrate our standards based API and SPA with Azure AD 2.0**
 
 ### Details
 
