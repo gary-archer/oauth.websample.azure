@@ -3,11 +3,10 @@
         "apiBaseUrl":       "https://api.mycompany.com/api"
     },
     "oauth": {
-        "authority":       "https://login.microsoftonline.com/7f071fbc-8bf2-4e61-bb48-dabd8e2f5b5a",
-        "clientId":        "e9ee09c6-afad-488d-ba08-ff0730ff068b",
+        "authority":       "https://login.microsoftonline.com/7f071fbc-8bf2-4e61-bb48-dabd8e2f5b5a/v2.0",
+        "clientId":        "cc281240-4d9a-42fd-808d-6e57cd987339",
         "appUri":          "https://web.mycompany.com/spa/",
         "postLogoutPath":  "#loggedout",
-        "scope":           "openid profile email",
-        "resource":        "api://3e46014f-817d-4be0-9739-a46b628aa998"
+        "scope":           "openid profile email api://83aabb54-22dd-44f2-b853-94ee044c9fd6/default"
     }
 }

@@ -25,6 +25,7 @@ export class Authenticator {
      * Our implementation uses in memory token validation to get token claims
      */
     public async authenticateAndSetClaims(accessToken: string, claims: ApiClaims): Promise<number> {
+        
         return await this._validateTokenInMemoryAndSetTokenClaims(accessToken, claims);
     }
 
@@ -53,17 +54,19 @@ export class Authenticator {
 
         // Read protocol claims and we will use the immutable user id as the subject claim
         const userId = this._getClaim(tokenData.oid, 'oid');
-        const clientId = this._getClaim(tokenData.appid, 'appid');
+        const clientId = this._getClaim(tokenData.azp, 'azp');
         const scope = this._getClaim(tokenData.scp, 'scp');
         const expiry = this._getClaim(tokenData.exp, 'exp');
 
         // Set token claims
         claims.setTokenInfo(userId, clientId, scope.split(' '));
 
-        // Azure includes user info in the access token
+        // Read user info claims
         const givenName = this._getClaim(tokenData.given_name, 'given_name');
         const familyName = this._getClaim(tokenData.family_name, 'family_name');
         const email = this._getClaim(tokenData.email, 'email');
+
+        // Set user info
         claims.setCentralUserInfo(givenName, familyName, email);
 
         // Return the expiry for claims caching
@@ -131,7 +134,7 @@ export class Authenticator {
     /*
      * Sanity checks when receiving claims to avoid failing later with a cryptic error
      */
-    private _getClaim(claim: string, name: string): any {
+    private _getClaim(claim: string | undefined, name: string): any {
 
         if (!claim) {
             throw ErrorHandler.fromMissingClaim(name);

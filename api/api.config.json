@@ -9,8 +9,8 @@
         "proxyUrl": "http://127.0.0.1:8888"
     },
     "oauth": {
-        "authority":    		"https://login.microsoftonline.com/7f071fbc-8bf2-4e61-bb48-dabd8e2f5b5a",
-        "audience":     		"api://3e46014f-817d-4be0-9739-a46b628aa998",
+        "authority":    		"https://login.microsoftonline.com/7f071fbc-8bf2-4e61-bb48-dabd8e2f5b5a/v2.0",
+        "audience":     		"83aabb54-22dd-44f2-b853-94ee044c9fd6",
         "maxClaimsCacheMinutes": 60
     }
 }
