@@ -22,5 +22,5 @@
 * The [Jsonwebtoken Library](https://github.com/auth0/node-jsonwebtoken) is used by the API to do in memory validation of access tokens
 * The [Node Cache](https://github.com/mpneuried/nodecache) is used to cache API claims keyed against tokens
 * Express is used to host both the API and the SPA content
-* Azure Active Directory is used for the Authorization Server
+* Azure Active Directory 2.0 Endpoints are used for the Authorization Server
 * OpenSSL is used for SSL certificate handling
