@@ -13,6 +13,7 @@ export class SampleCustomClaimsProvider implements CustomClaimsProvider {
     public async addCustomClaims(accessToken: string, request: Request, claims: ApiClaims): Promise<void> {
 
         // We will hard code the coverage, whereas a real scenario would look up the user data
+        // This might exist in a product database table such as UserRegions, mapped to the OAuth user id
         claims.regionsCovered = ['Europe', 'USA'];
     }
 }

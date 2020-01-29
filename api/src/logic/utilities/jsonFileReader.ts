@@ -1,5 +1,6 @@
 import fs from 'fs-extra';
 import {ApiError} from '../errors/apiError';
+import {ErrorCodes} from '../errors/errorCodes';
 
 /*
  * A simple utility to deal with the infrastructure of reading JSON files
@@ -20,7 +21,7 @@ export class JsonFileReader {
         } catch (e) {
 
             // Do error translation of file read errors
-            throw new ApiError('file_read_error', 'Problem encountered accessing data', e.stack);
+            throw new ApiError(ErrorCodes.fileReadError, 'Problem encountered accessing data', e.stack);
         }
     }
 }

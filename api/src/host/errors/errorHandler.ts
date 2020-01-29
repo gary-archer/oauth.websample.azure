@@ -1,5 +1,6 @@
 import {ApiError} from '../../logic/errors/apiError';
 import {ClientError} from '../../logic/errors/clientError';
+import {ErrorCodes} from '../../logic/errors/errorCodes';
 import {ApiLogger} from '../utilities/apiLogger';
 
 /*
@@ -57,7 +58,7 @@ export class ErrorHandler {
 
         // Handle general exceptions
         const apiError = new ApiError(
-            'general_exception',
+            ErrorCodes.serverError,
             'An unexpected exception occurred in the API',
             exception.stack);
 
@@ -71,8 +72,8 @@ export class ErrorHandler {
     public static fromMetadataError(responseError: any, url: string): ApiError {
 
         const apiError = new ApiError(
-            'metadata_lookup_failure',
-            'Metadata lookup failed',
+            ErrorCodes.metadataLookupFailure,
+            'Problem encountered downloading Open Id Connect metadata',
             responseError.stack);
 
         ErrorHandler._updateErrorFromHttpResponse(apiError, url, responseError);
@@ -85,8 +86,8 @@ export class ErrorHandler {
     public static fromSigningKeysDownloadError(responseError: any, url: string): ApiError {
 
         const apiError = new ApiError(
-            'token_signing_keys_error',
-            'Token signing keys download failed',
+            ErrorCodes.signingKeyDownloadFailure,
+            'Problem encountered downloading token signing keys',
             responseError.stack);
 
         ErrorHandler._updateErrorFromHttpResponse(apiError, url, responseError);
@@ -99,8 +100,8 @@ export class ErrorHandler {
     public static fromUserInfoTokenGrantError(responseError: any, url: string): ApiError {
 
         const apiError = new ApiError(
-            'userinfo_azure_failure',
-            'The request to get a Graph API token failed',
+            ErrorCodes.graphTokenExchangeError,
+            'The request to get a Graph API token for retrieving user info failed',
             responseError.stack);
 
         ErrorHandler._updateErrorFromHttpResponse(apiError, url, responseError);
@@ -123,7 +124,7 @@ export class ErrorHandler {
         }
 
         const apiError = new ApiError(
-            'userinfo_failure',
+            ErrorCodes.userinfoFailure,
             'User info lookup failed',
             responseError.stack);
 
@@ -133,13 +134,14 @@ export class ErrorHandler {
 
     /*
      * The error thrown if we cannot find an expected claim during OAuth processing
+     * Use status 400 since the client cannot fix the problem by getting a new token
      */
-    public static fromMissingClaim(claimName: string): ApiError {
+    public static fromMissingClaim(claimName: string): ClientError {
 
-        // Use status 500 since this represents a configuration problem that the client cannot fix
-        const apiError = new ApiError('claims_failure', `Authorization Data Not Found for Claim ${claimName}`);
-        apiError.details = `An empty value was found for the expected claim ${claimName}`;
-        return apiError;
+        return new ClientError(
+            400,
+            ErrorCodes.claimsFailure,
+            `Authorization Data Not Found for Claim ${claimName}`);
     }
 
     /*

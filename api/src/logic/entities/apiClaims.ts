@@ -4,21 +4,30 @@
 export class ApiClaims {
 
     // The immutable user id from the access token, which may exist in the API's database
-    private _userId!: string;
+    private _userId: string;
 
     // The client id, which typically represents the calling application
-    private _clientId!: string;
+    private _clientId: string;
 
     // OAuth scopes can represent high level areas of the business
-    private _scopes!: string[];
+    private _scopes: string[];
 
     // Data from the OAuth user info endpoint
-    private _givenName!: string;
-    private _familyName!: string;
-    private _email!: string;
+    private _givenName: string;
+    private _familyName: string;
+    private _email: string;
 
     // An example of an advanced claim used for authorization
     private _regionsCovered!: string[];
+
+    public constructor() {
+        this._userId = '';
+        this._clientId = '';
+        this._scopes = [];
+        this._givenName = '';
+        this._familyName = '';
+        this._email = '';
+    }
 
     public get userId(): string {
         return this._userId;
@@ -54,7 +63,7 @@ export class ApiClaims {
     }
 
     /*
-     * Set informational fields after user info lookup
+     * Set claims from OAuth user info
      */
     public setCentralUserName(givenName: string, familyName: string) {
         this._givenName = givenName;
@@ -65,6 +74,9 @@ export class ApiClaims {
         this._email = email;
     }
 
+    /*
+     * Set claims from product specific data
+     */
     public get regionsCovered(): string[] {
         return this._regionsCovered;
     }

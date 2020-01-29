@@ -1,5 +1,6 @@
 import {NextFunction, Request, Response} from 'express';
 import {ClientError} from '../../logic/errors/clientError';
+import {ErrorCodes} from '../../logic/errors/errorCodes';
 import {CompanyRepository} from '../../logic/repositories/companyRepository';
 import {CompanyService} from '../../logic/services/companyService';
 import {UserInfoService} from '../../logic/services/userInfoService';
@@ -101,7 +102,10 @@ export class Router {
         // Get the supplied id as a number, and return 400 if invalid input was received
         const id = parseInt(request.params.id, 10);
         if (isNaN(id) || id <= 0) {
-            throw new ClientError(400, 'invalid_company_id', 'The company id must be a positive numeric integer');
+            throw new ClientError(
+                400,
+                ErrorCodes.invalidCompanyId,
+                'The company id must be a positive numeric integer');
         }
 
         const result = await service.getCompanyTransactions(id);
