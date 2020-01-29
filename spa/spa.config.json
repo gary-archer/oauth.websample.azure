@@ -4,9 +4,9 @@
     },
     "oauth": {
         "authority":       "https://login.microsoftonline.com/7f071fbc-8bf2-4e61-bb48-dabd8e2f5b5a/v2.0",
-        "clientId":        "cc281240-4d9a-42fd-808d-6e57cd987339",
+        "clientId":        "c5ea6d78-c637-4f7f-b238-2264f5d4b479",
         "appUri":          "https://web.mycompany.com/spa/",
         "postLogoutPath":  "#loggedout",
-        "scope":           "openid profile email api://83aabb54-22dd-44f2-b853-94ee044c9fd6/default"
+        "scope":           "openid profile email api://cb398b43-96e8-48e6-8e8e-b168d5816c0e/default"
     }
 }
