@@ -29,7 +29,7 @@ export class Authenticator {
         // Our implementation first validates the token to get token claims
         const expiry = await this._validateTokenInMemoryAndSetTokenClaims(accessToken, claims);
 
-        // It then adds user info claims
+        // We need to get a separate Graph API token to get user info
         const userInfoAccessToken = await this._getUserInfoAccessToken(accessToken);
 
         // Next look up user info and get claims
@@ -72,7 +72,7 @@ export class Authenticator {
         claims.setTokenInfo(userId, clientId, scope.split(' '));
 
         // The only way I have found to get the email is to configure it as an optional claim
-        // We can then get the email from the access token
+        // We can then get the email from the access token, but I would rather avoid this
         const email = this._getClaim(tokenData.email, 'email');
         claims.setCentralUserEmail(email);
 
