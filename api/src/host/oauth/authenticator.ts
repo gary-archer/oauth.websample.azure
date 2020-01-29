@@ -1,6 +1,6 @@
 import jsonwebtoken from 'jsonwebtoken';
 import jwkToPem from 'jwk-to-pem';
-import {Client, Issuer} from 'openid-client';
+import {Client, Issuer, UserinfoResponse} from 'openid-client';
 import {ApiClaims} from '../../logic/entities/apiClaims';
 import {ClientError} from '../../logic/errors/clientError';
 import {OAuthConfiguration} from '../configuration/oauthConfiguration';
@@ -25,8 +25,18 @@ export class Authenticator {
      * Our implementation uses in memory token validation to get token claims
      */
     public async authenticateAndSetClaims(accessToken: string, claims: ApiClaims): Promise<number> {
-        
-        return await this._validateTokenInMemoryAndSetTokenClaims(accessToken, claims);
+
+        // Our implementation first validates the token to get token claims
+        const expiry = await this._validateTokenInMemoryAndSetTokenClaims(accessToken, claims);
+
+        // It then adds user info claims
+        const userInfoAccessToken = await this._getUserInfoAccessToken(accessToken);
+
+        // Next look up user info and get claims
+        await this._setCentralUserInfoClaims(userInfoAccessToken, claims);
+
+        // It then returns the token expiry as a cache time to live
+        return expiry;
     }
 
     /*
@@ -61,13 +71,10 @@ export class Authenticator {
         // Set token claims
         claims.setTokenInfo(userId, clientId, scope.split(' '));
 
-        // Read user info claims
-        const givenName = this._getClaim(tokenData.given_name, 'given_name');
-        const familyName = this._getClaim(tokenData.family_name, 'family_name');
+        // The only way I have found to get the email is to configure it as an optional claim
+        // We can then get the email from the access token
         const email = this._getClaim(tokenData.email, 'email');
-
-        // Set user info
-        claims.setCentralUserInfo(givenName, familyName, email);
+        claims.setCentralUserEmail(email);
 
         // Return the expiry for claims caching
         return expiry;
@@ -110,7 +117,7 @@ export class Authenticator {
 
             // Verify the token's signature, issuer, audience and that it is not expired
             const options = {
-                audience: this._oauthConfig.audience,
+                audience: this._oauthConfig.clientId,
                 issuer: this._issuer.metadata.issuer!,
             };
 
@@ -132,6 +139,66 @@ export class Authenticator {
     }
 
     /*
+     * Use the Azure specific 'on behalf of' flow to get a token with permissions to call the user info endpoint
+     */
+    private async _getUserInfoAccessToken(accessToken: string): Promise<string> {
+
+        // Create the Open Id Client
+        const client = new this._issuer.Client({
+            client_id: this._oauthConfig.clientId,
+            client_secret: this._oauthConfig.clientSecret,
+        });
+
+        try {
+
+            // Make a request to the token endpoint to get a graph token used for user info lookup
+            const response = await client.grant({
+                grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+                client_id: this._oauthConfig.clientId,
+                client_secret: this._oauthConfig.clientSecret,
+                assertion: accessToken,
+                scope: this._oauthConfig.graphApiScope,
+                requested_token_use: 'on_behalf_of',
+            });
+
+            return response.access_token!;
+
+        } catch (e) {
+
+            // Report Graph errors clearly
+            throw ErrorHandler.fromUserInfoTokenGrantError(e, this._issuer.metadata.token_endpoint!!);
+        }
+    }
+
+    /*
+     * We will read central user data by calling the Open Id Connect User Info endpoint
+     * Microsoft's implementation is Graph API which seems to only support a few fixed fields
+     */
+    private async _setCentralUserInfoClaims(accessToken: string, claims: ApiClaims): Promise<void> {
+
+        // Create the Open Id Client
+        const client = new this._issuer.Client({
+            client_id: 'userinfo',
+        });
+
+        try {
+
+            // Make a user info request and we cannot get the email in this manner
+            const userInfo: UserinfoResponse = await client.userinfo(accessToken);
+
+            // Read user info claims and update the claims object
+            const givenName = this._getClaim(userInfo.given_name, 'given_name');
+            const familyName = this._getClaim(userInfo.family_name, 'family_name');
+            claims.setCentralUserName(givenName, familyName);
+
+        } catch (e) {
+
+            // Report user info errors clearly
+            throw ErrorHandler.fromUserInfoError(e, this._issuer.metadata.userinfo_endpoint!!);
+        }
+    }
+
+    /*
      * Sanity checks when receiving claims to avoid failing later with a cryptic error
      */
     private _getClaim(claim: string | undefined, name: string): any {
@@ -148,5 +215,6 @@ export class Authenticator {
      */
     private _setupCallbacks(): void {
         this.authenticateAndSetClaims = this.authenticateAndSetClaims.bind(this);
+        this._getUserInfoAccessToken = this._getUserInfoAccessToken.bind(this);
     }
 }

@@ -56,9 +56,12 @@ export class ApiClaims {
     /*
      * Set informational fields after user info lookup
      */
-    public setCentralUserInfo(givenName: string, familyName: string, email: string) {
+    public setCentralUserName(givenName: string, familyName: string) {
         this._givenName = givenName;
         this._familyName = familyName;
+    }
+
+    public setCentralUserEmail(email: string) {
         this._email = email;
     }
 

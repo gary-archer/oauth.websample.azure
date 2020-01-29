@@ -92,7 +92,21 @@ export class ErrorHandler {
         ErrorHandler._updateErrorFromHttpResponse(apiError, url, responseError);
         return apiError;
     }
-    
+
+    /*
+     * Handle errors getting a Graph token in order to look up user info
+     */
+    public static fromUserInfoTokenGrantError(responseError: any, url: string): ApiError {
+
+        const apiError = new ApiError(
+            'userinfo_azure_failure',
+            'The request to get a Graph API token failed',
+            responseError.stack);
+
+        ErrorHandler._updateErrorFromHttpResponse(apiError, url, responseError);
+        return apiError;
+    }
+
     /*
      * Handle user info lookup failures
      */
@@ -122,7 +136,8 @@ export class ErrorHandler {
      */
     public static fromMissingClaim(claimName: string): ApiError {
 
-        const apiError = new ApiError('claims_failure', 'Authorization Data Not Found');
+        // Use status 500 since this represents a configuration problem that the client cannot fix
+        const apiError = new ApiError('claims_failure', `Authorization Data Not Found for Claim ${claimName}`);
         apiError.details = `An empty value was found for the expected claim ${claimName}`;
         return apiError;
     }

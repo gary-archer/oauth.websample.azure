@@ -3,6 +3,8 @@
  */
 export interface OAuthConfiguration {
     authority: string;
-    audience: string;
+    clientId: string;
+    clientSecret: string;
+    graphApiScope: string;
     maxClaimsCacheMinutes: number;
 }
