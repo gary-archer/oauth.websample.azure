@@ -65,12 +65,9 @@ export class ApiClaims {
     /*
      * Set claims from OAuth user info
      */
-    public setCentralUserName(givenName: string, familyName: string) {
+    public setCentralUserInfo(givenName: string, familyName: string, email: string) {
         this._givenName = givenName;
         this._familyName = familyName;
-    }
-
-    public setCentralUserEmail(email: string) {
         this._email = email;
     }
 

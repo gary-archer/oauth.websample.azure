@@ -71,11 +71,6 @@ export class Authenticator {
         // Set token claims
         claims.setTokenInfo(userId, clientId, scope.split(' '));
 
-        // The only way I have found to get the email is to configure it as an optional claim
-        // We can then get the email from the access token, but I would rather avoid this
-        const email = this._getClaim(tokenData.email, 'email');
-        claims.setCentralUserEmail(email);
-
         // Return the expiry for claims caching
         return expiry;
     }
@@ -189,7 +184,8 @@ export class Authenticator {
             // Read user info claims and update the claims object
             const givenName = this._getClaim(userInfo.given_name, 'given_name');
             const familyName = this._getClaim(userInfo.family_name, 'family_name');
-            claims.setCentralUserName(givenName, familyName);
+            const email = this._getClaim(userInfo.name, 'name');
+            claims.setCentralUserInfo(givenName, familyName, email);
 
         } catch (e) {
 
