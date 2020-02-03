@@ -45,12 +45,6 @@ export class Router {
         response: Response,
         next: NextFunction): Promise<void> {
 
-        // Allow unsecured paths
-        if (request.originalUrl.toLowerCase().startsWith('/api/unsecure')) {
-            next();
-            return;
-        }
-
         // Create authorization related classes on every API request
         const authenticator = new Authenticator(this._apiConfig.oauth, this._issuerMetadata.issuer);
         const customClaimsProvider = new SampleCustomClaimsProvider();
