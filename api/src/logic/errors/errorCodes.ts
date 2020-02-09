@@ -3,6 +3,9 @@
  */
 export class ErrorCodes {
 
+    // An API request did not have a valid access token
+    public static readonly unauthorizedRequest = 'unauthorized';
+
     // A generic server error with no error translation
     public static readonly serverError = 'server_error';
 
