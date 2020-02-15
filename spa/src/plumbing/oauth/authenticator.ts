@@ -11,7 +11,7 @@ import {UIError} from '../errors/uiError';
 export class Authenticator {
 
     // A session key used to avoid the user logging in whenever the page is refreshed
-    private readonly pageRefreshKey = 'canSilentlyRenew';
+    private readonly canRefreshKey = 'canSilentlyRenew';
 
     // The OIDC Client does all of the real security processing
     private readonly _userManager: UserManager;
@@ -64,7 +64,7 @@ export class Authenticator {
 
         // If there is no token but the page has previously loaded, we attempt a silent renewal on an iframe
         // This is the SPA equivalent of using a refresh token
-        const accessToken = await this._handlePageRefresh();
+        const accessToken = await this._refreshAccessToken();
         if (accessToken && accessToken.length > 0) {
             return accessToken;
         }
@@ -107,13 +107,14 @@ export class Authenticator {
             user.access_token = 'x' + user.access_token + 'x';
             this._userManager.storeUser(user);
         }
-    }/*
-     * If the user refreshes the page we prevent the user needing to login again unless required
-     * This is done by manually triggering a silent token renewal on an iframe
-     */
-    private async _handlePageRefresh(): Promise<string> {
+    }
 
-        const canRefresh = sessionStorage.getItem(this.pageRefreshKey);
+    /*
+     * Try to refresh the access token by manually triggering a silent token renewal on an iframe
+     */
+    private async _refreshAccessToken(): Promise<string> {
+
+        const canRefresh = sessionStorage.getItem(this.canRefreshKey);
         if (canRefresh) {
 
             try {
@@ -189,7 +190,7 @@ export class Authenticator {
                     history.replaceState({}, document.title, data.hash);
 
                     // Also enable page refresh without logging in
-                    sessionStorage.setItem(this.pageRefreshKey, 'true');
+                    sessionStorage.setItem(this.canRefreshKey, 'true');
 
                 } catch (e) {
 
@@ -213,7 +214,7 @@ export class Authenticator {
             await this._userManager.signoutRedirect();
 
             // Remove the logged in session key
-            sessionStorage.removeItem(this.pageRefreshKey);
+            sessionStorage.removeItem(this.canRefreshKey);
 
         } catch (e) {
             throw ErrorHandler.getFromOAuthRequest(e, ErrorCodes.logoutRequestFailed);
