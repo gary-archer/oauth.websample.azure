@@ -1,0 +1,30 @@
+# authguidance.websample.azure
+
+[![Known Vulnerabilities](https://snyk.io/test/github/gary-archer/authguidance.websample.azure/badge.svg?targetFile=spa/package.json)](https://snyk.io/test/github/gary-archer/authguidance.websample.azure?targetFile=spa/package.json)
+
+[![Known Vulnerabilities](https://snyk.io/test/github/gary-archer/authguidance.websample.azure/badge.svg?targetFile=api/package.json)](https://snyk.io/test/github/gary-archer/authguidance.websample.azure?targetFile=api/package.json)
+
+### Overview
+
+* An SPA sample using OAuth 2.x and Open Id Connect, referenced in my blog at https://authguidance.com
+* **The goal of this sample is to show how to integrate our standards based API and SPA with Azure AD 2.0**
+
+### Details
+
+* See the [Azure Overview](https://authguidance.com/2017/11/30/azure-active-directory-setup/) for a summary of behaviour and initial setup
+* See the [Azure SPA Troubleshooting](https://authguidance.com/2017/12/01/azure-ad-spa-code-sample/) page to understand how to complete the setup
+
+### Programming Languages
+
+* TypeScript is used for the SPA
+* NodeJS with TypeScript is used for the API
+
+### Middleware Used
+
+* The [Oidc-Client Library](https://github.com/IdentityModel/oidc-client-js) is used to implement the Authorization Code Flow (PKCE)
+* The [OpenId-Client Library](https://github.com/panva/node-openid-client) is used to handle API interaction with the Authorization Server
+* The [Jsonwebtoken Library](https://github.com/auth0/node-jsonwebtoken) is used by the API to do in memory validation of Azure AD access tokens
+* The [Node Cache](https://github.com/mpneuried/nodecache) is used to cache API claims keyed against tokens
+* Express is used to host both the API and the SPA's web static content
+* Azure Active Directory 2.0 Endpoints are used for the Authorization Server
+* OpenSSL is used for SSL certificate handling
