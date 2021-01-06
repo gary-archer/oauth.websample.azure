@@ -10,15 +10,9 @@ import {UserInfoClaims} from '../entities/userInfoClaims';
  */
 export class ApiClient {
 
-    /*
-     * Secured API calls use a token from the authenticator
-     */
     private readonly _apiBaseUrl: string;
     private readonly _authenticator: Authenticator;
 
-    /*
-     * Receive the base URL so that specific methods can provide a relative path
-     */
     public constructor(apiBaseUrl: string, authenticator: Authenticator) {
 
         this._apiBaseUrl = apiBaseUrl;
@@ -30,7 +24,7 @@ export class ApiClient {
     }
 
     /*
-     * We download user info from the API so that we can get any data we need
+     * We download user info from the API rather than using the id token
      */
     public async getUserInfo(): Promise<UserInfoClaims> {
 
@@ -38,7 +32,7 @@ export class ApiClient {
     }
 
     /*
-     * We download user info from the API so that we can get any data we need
+     * Get a list of companies
      */
     public async getCompanyList(): Promise<Company[]> {
 
@@ -46,7 +40,7 @@ export class ApiClient {
     }
 
     /*
-     * We download user info from the API so that we can get any data we need
+     * Get a list of transactions for a single company
      */
     public async getCompanyTransactions(id: string): Promise<CompanyTransactions> {
 
@@ -111,6 +105,11 @@ export class ApiClient {
 
         if (dataToSend) {
             options.data = dataToSend;
+        }
+
+        // Force IE11 to bypass the browser cache by changing the request URL every time
+        if (navigator.userAgent.toLowerCase().indexOf('trident') !== -1) {
+            options.cache = false;
         }
 
         return $.ajax(options);
