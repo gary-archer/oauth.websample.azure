@@ -50,6 +50,11 @@ export class CompanyService {
      * Apply claims that were read when the access token was first validated
      */
     private _isUserAuthorizedForCompany(company: Company): boolean {
+
+        if (this._claims.isAdmin) {
+            return true;
+        }
+
         const found = this._claims.regionsCovered.find((c) => c === company.region);
         return !!found;
     }
