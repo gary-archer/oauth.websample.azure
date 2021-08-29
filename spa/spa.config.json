@@ -1,0 +1,13 @@
+{
+    "app": {
+        "webBaseUrl":            "https://web.mycompany.com",
+        "apiBaseUrl":            "https://api.mycompany.com/api"
+    },
+    "oauth": {
+        "authority":             "https://login.microsoftonline.com/7f071fbc-8bf2-4e61-bb48-dabd8e2f5b5a/v2.0",
+        "clientId":              "c5ea6d78-c637-4f7f-b238-2264f5d4b479",
+        "redirectUri":           "/spa/",
+        "postLogoutRedirectUri": "/spa/#loggedout",
+        "scope":                 "openid profile email api://cb398b43-96e8-48e6-8e8e-b168d5816c0e/transactions_read"
+    }
+}

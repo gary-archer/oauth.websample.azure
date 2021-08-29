@@ -1,0 +1,19 @@
+{
+    "api": {
+        "port": 443,
+        "sslCertificateFileName": "./certs/mycompany.com.ssl.p12",
+        "sslCertificatePassword": "Password1",
+        "trustedOrigins": [
+            "https://web.mycompany.com"
+        ],
+        "useProxy": false,
+        "proxyUrl": "http://127.0.0.1:8888"
+    },
+    "oauth": {
+        "authority":    		"https://login.microsoftonline.com/7f071fbc-8bf2-4e61-bb48-dabd8e2f5b5a/v2.0",
+        "clientId":             "cb398b43-96e8-48e6-8e8e-b168d5816c0e",
+        "clientSecret":         "Y9JM.ftSk1F5prubL3uvwoZvYavQv_=?",
+        "graphApiScope":        "openid profile email",
+        "maxClaimsCacheMinutes": 60
+    }
+}
