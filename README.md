@@ -29,7 +29,3 @@
 * The [OpenId-Client Library](https://github.com/panva/node-openid-client) is used to handle API interaction with the Authorization Server
 * The [Jsonwebtoken Library](https://github.com/auth0/node-jsonwebtoken) is used by the API to do in memory validation of Azure AD access tokens
 * The [Node Cache](https://github.com/mpneuried/nodecache) is used to cache API claims keyed against tokens
-
-### SSL Certificates
-
-* Certificates in the certs folder originate from the [OAuth Development Certificates](https://github.com/gary-archer/oauth.developmentcertificates) repository
