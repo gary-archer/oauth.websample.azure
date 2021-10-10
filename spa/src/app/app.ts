@@ -3,6 +3,7 @@ import {Configuration} from '../configuration/configuration';
 import {ConfigurationLoader} from '../configuration/configurationLoader';
 import {ErrorConsoleReporter} from '../plumbing/errors/errorConsoleReporter';
 import {Authenticator} from '../plumbing/oauth/authenticator';
+import {HtmlStorageHelper} from '../plumbing/utilities/htmlStorageHelper';
 import {OidcLogger} from '../plumbing/utilities/oidcLogger';
 import {ErrorView} from '../views/errorView';
 import {HeaderButtonsView} from '../views/headerButtonsView';
@@ -36,8 +37,10 @@ export class App {
     public async execute(): Promise<void> {
 
         try {
+
             // Start listening for hash changes
             window.onhashchange = this._onHashChange;
+            window.onstorage = this._onStorageChange;
 
             // Do the initial render
             this._initialRender();
@@ -45,7 +48,7 @@ export class App {
             // Do one time app initialisation
             await this._initialiseApp();
 
-            // We must be prepared for page invocation to be an OAuth login response
+            // We must be prepared for page invocation to be an OAuth response
             await this._authenticator!.handleLoginResponse();
 
             // Load the main view, which may trigger a login redirect
@@ -74,8 +77,7 @@ export class App {
         this._headerButtonsView = new HeaderButtonsView(
             this._onHome,
             this._onReloadData,
-            this._onExpireAccessToken,
-            this._onExpireRefreshToken,
+            this._onExpireToken,
             this._onLogout);
         this._headerButtonsView.load();
 
@@ -92,15 +94,12 @@ export class App {
         this._configuration = await ConfigurationLoader.download('spa.config.json');
 
         // Initialise our OIDC Client wrapper
-        this._authenticator = new Authenticator(
-            this._configuration.app.webBaseUrl,
-            this._configuration.oauth,
-            this._onExternalTabLogout);
+        this._authenticator = new Authenticator(this._configuration.oauth);
 
         // Create a client to reliably call the API
         this._apiClient = new ApiClient(this._configuration.app.apiBaseUrl, this._authenticator);
 
-        // Our simple router passes the OIDC Client instance between views
+        // Our simple router passes the API Client instance between views
         this._router = new Router(this._apiClient, this._errorView!);
 
         // Update state to indicate that global objects are loaded
@@ -215,7 +214,7 @@ export class App {
     }
 
     /*
-     * Start a logout request
+     * Perform a logout request
      */
     private async _onLogout(): Promise<void> {
 
@@ -233,25 +232,23 @@ export class App {
     }
 
     /*
-     * Handle logout notifications from other browser tabs
-     * Note that this is not currently supported by Azure AD, since there is no check session iframe support
+     * Handle logout notifications from other browser tabs, by listening to local storage events
      */
-    private _onExternalTabLogout(): void {
-        location.hash = '#loggedout';
+    private _onStorageChange(event: StorageEvent): void {
+
+        console.log('*** Storage change');
+        if (HtmlStorageHelper.isMultiTabLogoutEvent(event)) {
+
+            this._authenticator!.onExternalLogout();
+            location.hash = '#loggedout';
+        }
     }
 
     /*
-     * Force the access token to return 401
+     * Force a new access token to be retrieved
      */
-    private async _onExpireAccessToken(): Promise<void> {
+    private async _onExpireToken(): Promise<void> {
         await this._authenticator!.expireAccessToken();
-    }
-
-    /*
-     * Force the refresh token to return 401
-     */
-    private async _onExpireRefreshToken(): Promise<void> {
-        await this._authenticator!.expireRefreshToken();
     }
 
     /*
@@ -260,9 +257,9 @@ export class App {
     private _setupCallbacks(): void {
         this._onHashChange = this._onHashChange.bind(this);
         this._onHome = this._onHome.bind(this);
-        this._onLogout = this._onLogout.bind(this);
         this._onReloadData = this._onReloadData.bind(this);
-        this._onExpireAccessToken = this._onExpireAccessToken.bind(this);
-        this._onExpireRefreshToken = this._onExpireRefreshToken.bind(this);
+        this._onLogout = this._onLogout.bind(this);
+        this._onStorageChange = this._onStorageChange.bind(this);
+        this._onExpireToken = this._onExpireToken.bind(this);
     }
 }

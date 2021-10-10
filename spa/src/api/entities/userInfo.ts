@@ -1,5 +1,5 @@
 /*
- * User info returned from the API can include OAuth claims
+ * User info claims can be returned to the UI
  */
 export interface UserInfo {
     givenName: string;

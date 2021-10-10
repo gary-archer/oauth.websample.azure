@@ -16,8 +16,7 @@ export class IFrameApp {
             // Download configuration
             const configuration = await ConfigurationLoader.download('spa.config.json');
 
-            // Handle token renewal responses on an iframe when using Okta
-            // Note that with Cognito we use refresh tokens instead
+            // Handle token renewal responses on an iframe
             const handler = new TokenRenewalResponseHandler(configuration.oauth);
             await handler.handleSilentTokenRenewalResponse();
 

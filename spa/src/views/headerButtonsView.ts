@@ -6,22 +6,19 @@ import {DomUtils} from './domUtils';
 export class HeaderButtonsView {
 
     private readonly _onHome: () => void;
-    private readonly _onExpireAccessToken: () => void;
-    private readonly _onExpireRefreshToken: () => void;
+    private readonly _onExpireToken: () => void;
     private readonly _onReloadData: () => void;
     private readonly _onLogout: () => void;
 
     public constructor(
         onHome: ()          => void,
         onReloadData: ()   => void,
-        onExpireAccessToken: ()   => void,
-        onExpireRefreshToken: ()   => void,
+        onExpireToken: ()   => void,
         onLogout: ()        => void) {
 
         this._onHome = onHome;
         this._onReloadData = onReloadData;
-        this._onExpireAccessToken = onExpireAccessToken;
-        this._onExpireRefreshToken = onExpireRefreshToken;
+        this._onExpireToken = onExpireToken;
         this._onLogout = onLogout;
     }
 
@@ -33,19 +30,16 @@ export class HeaderButtonsView {
 
         const html =
             `<div class='row'>
-                <div class='col-one-fifth my-2 d-flex p-1'>
+                <div class='col-3 my-2 d-flex'>
                     <button id='btnHome' type='button' class='btn btn-primary btn-block p-1'>Home</button>
                 </div>
-                <div class='col-one-fifth my-2 d-flex p-1'>
+                <div class='col-3 my-2 d-flex'>
                     <button id='btnReloadData' type='button' disabled class='btn btn-primary btn-block p-1 sessionbutton'>Reload Data</button>
                 </div>
-                <div class='col-one-fifth my-2 d-flex p-1'>
-                    <button id='btnExpireAccessToken' type='button' disabled class='btn btn-primary btn-block p-1 sessionbutton'>Expire Access Token</button>
+                <div class='col-3 my-2 d-flex'>
+                    <button id='btnExpireAccessToken' type='button' disabled class='btn btn-primary btn-block p-1 sessionbutton'>Expire Token</button>
                 </div>
-                <div class='col-one-fifth my-2 d-flex p-1'>
-                    <button id='btnExpireRefreshToken' type='button' disabled class='btn btn-primary btn-block p-1 sessionbutton'>Expire Refresh Token</button>
-                </div>
-                <div class='col-one-fifth my-2 d-flex p-1'>
+                <div class='col-3 my-2 d-flex'>
                     <button id='btnLogout' type='button' disabled class='btn btn-primary btn-block p-1 sessionbutton'>Logout</button>
                 </div>
             </div>`;
@@ -53,8 +47,7 @@ export class HeaderButtonsView {
 
         // Button clicks are handled by the parent class
         DomUtils.onClick('#btnHome', this._onHome);
-        DomUtils.onClick('#btnExpireAccessToken', this._onExpireAccessToken);
-        DomUtils.onClick('#btnExpireRefreshToken', this._onExpireRefreshToken);
+        DomUtils.onClick('#btnExpireAccessToken', this._onExpireToken);
         DomUtils.onClick('#btnReloadData', this._onReloadData);
         DomUtils.onClick('#btnLogout', this._onLogout);
     }

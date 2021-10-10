@@ -1,4 +1,4 @@
-import {CustomClaims} from '../entities//claims/customClaims';
+import {CustomClaims} from '../entities/claims/customClaims';
 import {Company} from '../entities/company';
 import {CompanyTransactions} from '../entities/companyTransactions';
 import {ClientError} from '../errors/clientError';
@@ -47,15 +47,18 @@ export class CompanyService {
     }
 
     /*
-     * Apply claims that were read when the access token was first validated
+     * A simple example of applying domain specific claims
      */
     private _isUserAuthorizedForCompany(company: Company): boolean {
 
-        if (this._claims.isAdmin) {
+        // First authorize based on the user role
+        const isAdmin = this._claims.userRole.toLowerCase().indexOf('admin') !== -1;
+        if (isAdmin) {
             return true;
         }
 
-        const found = this._claims.regionsCovered.find((c) => c === company.region);
+        // Next authorize based on a business rule that links the user to regional data
+        const found = this._claims.userRegions.find((c) => c === company.region);
         return !!found;
     }
 
@@ -63,6 +66,7 @@ export class CompanyService {
      * Return a 404 error if a company is requested that is outside an allowed range
      */
     private _unauthorizedError(companyId: number): ClientError {
+
         return new ClientError(
             404,
             ErrorCodes.companyNotFound,

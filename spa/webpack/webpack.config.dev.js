@@ -8,10 +8,10 @@ module.exports = merge(baseConfig, {
   // Let webpack know this is a development build
   mode: 'development',
 
-  // Output source maps to enable debugging of browser code
+  // Output source maps to enable debugging of browser code and stack trace analysis
   devtool: 'source-map',
 
-  // Pass a variable through to our Web UI to tell it to not display stack traces
+  // Pass a variable through to our Web UI to tell it to display stack traces
   plugins:[
     new webpack.DefinePlugin({
       SHOW_STACK_TRACE: 'true',

@@ -12,17 +12,11 @@ export class ErrorCodes {
     // A generic server error with no error translation
     public static readonly serverError = 'server_error';
 
-    // A problem reading Open Id Connect metadata
-    public static readonly metadataLookupFailure = 'metadata_lookup_failure';
-
-    // A problem downloading token signing keys used for in memory token validation
-    public static readonly signingKeyDownloadFailure = 'signing_key_download';
+    // An error connecting downloading token signing public keys
+    public static readonly jwksDownloadError = 'jwks_download_failure'
 
     // A problem due to an invalid scope
     public static readonly insufficientScope = 'insufficient_scope';
-
-    // The attempt to get a graph token from the token endpoint failed
-    public static readonly graphTokenExchangeError = 'graph_token_exchange';
 
     // A problem calling the user info endpoint
     public static readonly userinfoFailure = 'userinfo_failure';

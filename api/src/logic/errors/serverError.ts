@@ -9,14 +9,14 @@ const MAX_ERROR_ID = 99999;
 /*
  * An error entity that the API will log
  */
-export class ApiError extends Error {
+export class ServerError extends Error {
 
     private readonly _statusCode: number;
     private readonly _apiName: string;
     private readonly _errorCode: string;
     private readonly _instanceId: number;
     private readonly _utcTime: string;
-    private _details: string;
+    private _details: any;
 
     /*
      * Errors are categorized by error code
@@ -42,11 +42,11 @@ export class ApiError extends Error {
         Object.setPrototypeOf(this, new.target.prototype);
     }
 
-    public get details(): string {
+    public get details(): any {
         return this._details;
     }
 
-    public set details(details: string) {
+    public set details(details: any) {
         this._details = details;
     }
 
@@ -56,8 +56,11 @@ export class ApiError extends Error {
     public toLogFormat(): any {
 
         const serviceError: any = {
-            details: this._details,
         };
+
+        if (this.details) {
+            serviceError.details =  this._details;
+        }
 
         // Include the stack trace as an array within the JSON object
         if (this.stack) {

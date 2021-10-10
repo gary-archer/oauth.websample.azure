@@ -10,13 +10,11 @@ export class ResponseWriter {
      */
     public static writeObjectResponse(response: Response, statusCode: number, data: any): void {
 
-        // Write standard headers
         response.setHeader('Content-Type', 'application/json');
         if (statusCode === 401) {
             response.setHeader('WWW-Authenticate', 'Bearer');
         }
 
-        // Write the data
         response.status(statusCode).send(JSON.stringify(data));
     }
 }

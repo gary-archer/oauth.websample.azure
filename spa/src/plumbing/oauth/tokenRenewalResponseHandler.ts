@@ -4,11 +4,9 @@ import {OAuthConfiguration} from '../../configuration/oauthConfiguration';
 
 /*
  * Receive iframe token renewal responses
- * Since we only store refresh tokens in memory, iframe based renewal is used on page reload
  */
 export class TokenRenewalResponseHandler {
 
-    // The OIDC Client class does all of the real security processing
     private readonly _userManager: UserManager;
 
     public constructor(configuration: OAuthConfiguration) {
@@ -16,7 +14,7 @@ export class TokenRenewalResponseHandler {
         const settings = {
             authority: configuration.authority,
             client_id: configuration.clientId,
-        };
+        } ;
 
         this._userManager = new UserManager(settings);
     }

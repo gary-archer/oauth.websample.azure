@@ -40,7 +40,7 @@ export class ErrorHandler {
     }
 
     /*
-     * Handle errors triggering the sign in request, such as CORS errors contacting endpoints
+     * Handle sign in errors, which may have an OAuth error and error_description
      */
     public static getFromLoginOperation(exception: any, errorCode: string): UIError {
 

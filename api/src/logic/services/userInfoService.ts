@@ -1,7 +1,7 @@
 import {UserInfoClaims} from '../entities/claims/userInfoClaims';
 
 /*
- * Our user info service runs after claims handling has completed
+ * We can return any user data to our UI clients here, including both OAuth and non OAuth data
  */
 export class UserInfoService {
 

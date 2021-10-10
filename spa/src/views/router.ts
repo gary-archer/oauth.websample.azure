@@ -35,7 +35,7 @@ export class Router {
 
         } else {
 
-            // Do simple routing based on hash parameters
+            // The transactions view has a URL such as #company=2
             const transactionsCompany = this.getTransactionsViewId();
             if (transactionsCompany) {
 

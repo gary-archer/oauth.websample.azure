@@ -4,29 +4,27 @@ import {OAuthConfiguration} from '../../configuration/oauthConfiguration';
 import {ErrorCodes} from '../errors/errorCodes';
 import {ErrorHandler} from '../errors/errorHandler';
 import {HtmlStorageHelper} from '../utilities/htmlStorageHelper';
-import {UrlHelper} from '../utilities/urlHelper';
 
 /*
  * The entry point for initiating login and token requests
  */
 export class Authenticator {
 
+    private readonly _configuration: OAuthConfiguration;
     private readonly _userManager: UserManager;
 
-    public constructor(
-        webBaseUrl: string,
-        configuration: OAuthConfiguration,
-        onExternalTabLogout: () => void) {
+    public constructor(configuration: OAuthConfiguration) {
 
         // Create OIDC settings from our application configuration
+        this._configuration = configuration;
         const settings = {
 
-            // The Open Id Connect base URL
+            // The OpenID Connect base URL
             authority: configuration.authority,
 
             // Core OAuth settings for our app
             client_id: configuration.clientId,
-            redirect_uri: UrlHelper.append(webBaseUrl, configuration.redirectUri),
+            redirect_uri: configuration.redirectUri,
             scope: configuration.scope,
 
             // Use the Authorization Code Flow (PKCE)
@@ -38,27 +36,19 @@ export class Authenticator {
             // Store redirect state such as PKCE verifiers in session storage, for more reliable cleanup
             stateStore: new WebStorageStateStore({ store: sessionStorage }),
 
-            // Renew on the app's main URL and do so explicitly rather than via a background timer
-            silent_redirect_uri: UrlHelper.append(webBaseUrl, configuration.redirectUri),
+            // Renew on the SPA's main URL and do so on demand
+            silent_redirect_uri: configuration.redirectUri,
             automaticSilentRenew: false,
 
-            // Our Web UI gets user info from its API, so that it is not limited to only OAuth user info
+            // Our Web UI gets user info from its API, for best extensibility
             loadUserInfo: false,
 
             // Indicate the logout return path and listen for logout events from other browser tabs
-            post_logout_redirect_uri: UrlHelper.append(webBaseUrl, configuration.postLogoutRedirectUri),
-            monitorSession: true,
+            post_logout_redirect_uri: configuration.postLogoutRedirectUri,
         };
 
         // Create the user manager
         this._userManager = new UserManager(settings);
-
-        // When the user signs out from another browser tab, also remove tokens from this browser tab
-        // This will only work if the Authorization Server has a check_session_iframe endpoint
-        this._userManager.events.addUserSignedOut(async () => {
-            this._userManager.removeUser();
-            onExternalTabLogout();
-        });
     }
 
     /*
@@ -66,19 +56,14 @@ export class Authenticator {
      */
     public async getAccessToken(): Promise<string> {
 
-        // If not logged in on any browser tab, do not return a token
-        // This ensures that Tab B does not continue working after a logout on Tab A
-        if (HtmlStorageHelper.isLoggedIn) {
-
-            // On most calls we just return the existing token from memory
-            const user = await this._userManager.getUser();
-            if (user && user.access_token) {
-                return user.access_token;
-            }
+        // On most calls we just return the existing token from memory
+        const user = await this._userManager.getUser();
+        if (user && user.access_token) {
+            return user.access_token;
         }
 
-        // If a new token is needed or the page is reloaded, try to refresh the access token
-        return await this.refreshAccessToken();
+        // If a new token is needed or the page is refreshed, try to refresh the access token
+        return this.refreshAccessToken();
     }
 
     /*
@@ -86,14 +71,23 @@ export class Authenticator {
      */
     public async refreshAccessToken(): Promise<string> {
 
-        // If not logged in on any browser tab, do not try an iframe redirect, to avoid slowness
+        // Avoid an unnecessary refresh attempt when the app first loads
         if (HtmlStorageHelper.isLoggedIn) {
 
-            // Try to do a token refresh
-            await this._performTokenRefresh();
+            let user = await this._userManager.getUser();
+            if (user && user.refresh_token && user.refresh_token.length > 0) {
 
-            // Return the renewed access token if found
-            const user = await this._userManager.getUser();
+                // Refresh the access token using a refresh token
+                await this._performAccessTokenRenewalViaRefreshToken();
+
+            } else {
+
+                // Use the traditional SPA solution if the page is reloaded
+                await this._performAccessTokenRenewalViaIframeRedirect();
+            }
+
+            // Return a renewed access token if found
+            user = await this._userManager.getUser();
             if (user && user.access_token) {
                 return user.access_token;
             }
@@ -121,6 +115,15 @@ export class Authenticator {
     }
 
     /*
+     * Handler logout notifications from other browser tabs
+     */
+    public async onExternalLogout(): Promise<void> {
+
+        await this._userManager.removeUser();
+        HtmlStorageHelper.isLoggedIn = false;
+    }
+
+    /*
      * This method is for testing only, to make the access token in storage act like it has expired
      */
     public async expireAccessToken(): Promise<void> {
@@ -134,25 +137,11 @@ export class Authenticator {
     }
 
     /*
-     * This method is for testing only, to make the refresh token in storage act like it has expired
-     */
-    public async expireRefreshToken(): Promise<void> {
-
-        await this.expireAccessToken();
-        const user = await this._userManager.getUser();
-        if (user) {
-
-            user.refresh_token = 'x' + user.refresh_token + 'x';
-            this._userManager.storeUser(user);
-        }
-    }
-
-    /*
      * Do the interactive login redirect on the main window
      */
     private async _startLogin(): Promise<void> {
 
-        // First store the SPA's client side location
+        // Otherwise start a login redirect, by first storing the SPA's client side location
         // Some apps might also want to store form fields being edited in the state parameter
         const data = {
             hash: location.hash.length > 0 ? location.hash : '#',
@@ -160,7 +149,9 @@ export class Authenticator {
 
         try {
             // Start a login redirect
-            await this._userManager.signinRedirect({state: data});
+            await this._userManager.signinRedirect({
+                state: data,
+            });
 
         } catch (e) {
 
@@ -178,7 +169,7 @@ export class Authenticator {
         const urlData = urlparse(location.href, true);
         if (urlData.query && urlData.query.state) {
 
-            // Only try to process a login response if the state exists, to avoid user errors
+            // Only try to process a login response if the state exists
             const storedState = await this._userManager.settings.stateStore?.get(urlData.query.state);
             if (storedState) {
 
@@ -188,11 +179,12 @@ export class Authenticator {
                     // Handle the login response
                     const user = await this._userManager.signinRedirectCallback();
 
-                    // Get the hash URL before the login redirect
+                    // We will return to the app location before the login redirect
                     redirectLocation = user.state.hash;
 
-                    // Set the logged in flag, which prevents unnecessary iframe redirects
+                    // Set the logged in flag
                     HtmlStorageHelper.isLoggedIn = true;
+                    HtmlStorageHelper.multiTabLogout = false;
 
                 } catch (e) {
 
@@ -214,11 +206,13 @@ export class Authenticator {
     private async _startLogout(): Promise<void> {
 
         try {
-            // Do the redirect
+
+            // Use a standard end session request redirect
             await this._userManager.signoutRedirect();
 
-            // Remove the logged in flag, and other browser tabs will then act logged out
-            HtmlStorageHelper.removeLoggedIn();
+            // Update the state for this app and notify other tabs
+            HtmlStorageHelper.isLoggedIn = false;
+            HtmlStorageHelper.multiTabLogout = true;
 
         } catch (e) {
 
@@ -228,30 +222,58 @@ export class Authenticator {
     }
 
     /*
-     * Try to refresh the access token with the refresh token when available
-     * Note that on page reloads or when opening new tabs there will be no refresh token
-     * In this case we use iframe based token renewal instead
+     * Try to refresh the access token by manually triggering a silent token renewal on an iframe
+     * This will fail if there is no authorization server session cookie yet
+     * It will also fail in the Safari browser
+     * It may also fail if there has been no top level redirect yet for the current browser session
      */
-    private async _performTokenRefresh(): Promise<void> {
+    private async _performAccessTokenRenewalViaIframeRedirect(): Promise<void> {
 
         try {
 
-            // Ask the OIDC client to do the work of the token refresh
-            // A different scope could be requested by also supplying an object with a scope= property
+            // Redirect on an iframe using the Authorization Server session cookie and prompt=none
+            // This instructs the Authorization Server to not render the login page on the iframe
+            // If the request fails there should be a login_required error returned from the Authorization Server
             await this._userManager.signinSilent();
 
-        } catch (e) {
+        } catch (e: any) {
 
-            // The session expires with an invalid_grant error for refresh token grant messages
-            // The session expires with a login_required error iframe renewal redirects
-            if (e.error === ErrorCodes.loginRequired || e.message === ErrorCodes.invalidGrant) {
+            if (e.error === ErrorCodes.loginRequired) {
 
-                // For session expired errors, clear token data and return success, to force a login redirect
+                // Clear token data and our code will then trigger a new login redirect
                 await this._userManager.removeUser();
 
             } else {
 
-                // Rethrow other errors
+                // Rethrow any technical errors
+                throw ErrorHandler.getFromTokenError(e, ErrorCodes.tokenRenewalError);
+            }
+        }
+    }
+
+    /*
+     * It is not recommended to use a refresh token in the browser, even when stored only in memory, as in this sample
+     * The browser cannot store a long lived token securely and malicious code could potentially access it
+     * Cognito provides no option to disable refresh tokens for SPAs
+     */
+    private async _performAccessTokenRenewalViaRefreshToken(): Promise<void> {
+
+        try {
+
+            // The library will use the refresh token grant to get a new access token
+            await this._userManager.signinSilent();
+
+        } catch (e: any) {
+
+            // When the session expires this will fail with an 'invalid_grant' response
+            if (e.error === ErrorCodes.sessionExpired) {
+
+                // Clear token data and our code will then trigger a new login redirect
+                await this._userManager.removeUser();
+
+            } else {
+
+                // Rethrow any technical errors
                 throw ErrorHandler.getFromTokenError(e, ErrorCodes.tokenRenewalError);
             }
         }
