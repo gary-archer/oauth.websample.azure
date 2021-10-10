@@ -16,6 +16,14 @@ This sample is focused on using Azure AD in a standards based way, with open sou
 In 2021 it is instead recommended to use a [Back End for Front End](/2019/09/09/spa-back-end-for-front-end/) approach for SPA security.\
 This requires more moving parts - see the [Final SPA Code Sample](https://github.com/gary-archer/oauth.websample.final) for an example implementation.
 
+## Prerequisites
+
+See the [Azure Overview](https://authguidance.com/2017/11/30/azure-active-directory-setup/) for a summary of behaviour and initial setup.\
+Then update the settings in these files to point to your own Azure AD instance and application instances:
+
+- spa/spa.config.json
+- api/api.config.json
+
 ## Quick Start
 
 Ensure that Node.js is installed, then run the following script from a macOS terminal or from Git Bash on Windows:
@@ -44,27 +52,10 @@ Then run the following script to run the code for both SPA and API:
 ./deploy.sh
 ```
 
-The browser is invoked and you can sign in with my Azure AD test credentials:
-
-- User: `guestuser@mycompany.com`
-- Password: `GuestPassword1`
-
-You can then test all lifecycle operations, including token refresh, multi tab browsing and logout.\
-You can also sign in as a different user, whose domain specific claims grant different access to data:
-
-- User: `guestadmin@mycompany.com`
-- Password: `GuestPassword1`
-
-## Use your own Authorization Server
-
-If preferred, update the settings in these files to point to your own Authorization Server and users:
-
-- spa/spa.config.json
-- api/api.config.json
+A browser will then be invoked, after which you can sign in with your own Azure AD test user accounts.
 
 ### Details
 
-* See the [Azure Overview](https://authguidance.com/2017/11/30/azure-active-directory-setup/) for a summary of behaviour and initial setup
 * See the [Azure SPA Troubleshooting](https://authguidance.com/2017/12/01/azure-ad-spa-code-sample/) page to understand some vendor specific behaviour
 
 ### Programming Languages
