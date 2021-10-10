@@ -66,6 +66,46 @@ export class ErrorFactory {
     }
 
     /*
+     * Handle errors getting a Graph token in order to look up user info
+     */
+    public static fromUserInfoTokenGrantError(e: any, url: string): ServerError {
+
+        // Collect the parts of the error, including the standard OAuth error / error_description fields
+        let status = 0;
+        if (e.response && e.response.status) {
+            status = e.response.status;
+        }
+
+        let responseData: any = {};
+        if (e.response && e.response.data && typeof e.response.data === 'object') {
+            responseData = e.response.data;
+        }
+
+        // Parse the message and Azure AD uses the standard error / error_description fields in this response
+        const parts: string[] = [];
+        parts.push('Graph access token request failed');
+        if (status) {
+            parts.push(`Status: ${status}`);
+        }
+        if (responseData.error) {
+            parts.push(`Code: ${responseData.error}`);
+        }
+        if (responseData.error_description) {
+            parts.push(`Description: ${responseData.error_description}`);
+        }
+        parts.push(`URL: ${url}`);
+        const details = parts.join(', ');
+
+        // Return the error object
+        const error = new ServerError(
+            ErrorCodes.graphTokenExchangeError,
+            'The request to get a Graph API token failed',
+            e.stack);
+        error.details = `${details}, URL: ${url}`;
+        return error;
+    }
+
+    /*
      * Handle user info lookup failures
      */
     public static fromUserInfoError(e: any, url: string): ServerError | ClientError {
@@ -86,9 +126,7 @@ export class ErrorFactory {
             responseData = e.response.data;
         }
 
-        console.log(responseData);
-
-        // Parse the message and Azure AD does not use the standard error / error_description fields
+        // Parse the message and Azure AD does not use the standard error / error_description fields in this response
         const parts: string[] = [];
         parts.push('User info lookup failed');
         if (status) {

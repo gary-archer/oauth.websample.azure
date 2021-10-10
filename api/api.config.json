@@ -11,15 +11,16 @@
     },
     "oauth": {
         "jwksEndpoint":                  "https://login.microsoftonline.com/7f071fbc-8bf2-4e61-bb48-dabd8e2f5b5a/discovery/v2.0/keys",
+        "tokenEndpoint":                 "https://login.microsoftonline.com/7f071fbc-8bf2-4e61-bb48-dabd8e2f5b5a/oauth2/v2.0/token",
         "userInfoEndpoint":              "https://graph.microsoft.com/oidc/userinfo",
         "algorithm":                     "RS256",
         "issuer":                        "https://login.microsoftonline.com/7f071fbc-8bf2-4e61-bb48-dabd8e2f5b5a/v2.0",
         "audience":                      "cb398b43-96e8-48e6-8e8e-b168d5816c0e",
         "claimsCacheTimeToLiveMinutes":  30,
-        "client": {
+        "graphClient": {
             "clientId":                  "cb398b43-96e8-48e6-8e8e-b168d5816c0e",
             "clientSecret":              "Y9JM.ftSk1F5prubL3uvwoZvYavQv_=?",
-            "graphApiScope":             "openid profile email"
+            "scope":                     "openid profile email"
         }
     }
 }

@@ -18,6 +18,9 @@ export class ErrorCodes {
     // A problem due to an invalid scope
     public static readonly insufficientScope = 'insufficient_scope';
 
+    // The attempt to get a graph token from the token endpoint failed
+    public static readonly graphTokenExchangeError = 'graph_token_exchange';
+
     // A problem calling the user info endpoint
     public static readonly userinfoFailure = 'userinfo_failure';
 

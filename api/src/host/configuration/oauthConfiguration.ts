@@ -5,10 +5,11 @@ import {OAuthClientConfiguration} from './oauthClientConfiguration';
  */
 export interface OAuthConfiguration {
     jwksEndpoint: string;
+    tokenEndpoint: string;
     userInfoEndpoint: string;
     algorithm: string;
     issuer: string;
     audience: string;
     claimsCacheTimeToLiveMinutes: number;
-    client: OAuthClientConfiguration;
+    graphClient: OAuthClientConfiguration;
 }

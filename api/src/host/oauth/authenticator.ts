@@ -1,7 +1,7 @@
 import axios, {AxiosRequestConfig} from 'axios';
 import {createRemoteJWKSet} from 'jose/jwks/remote';
 import {jwtVerify} from 'jose/jwt/verify';
-import {URL} from 'url';
+import {URL, URLSearchParams} from 'url';
 import {TokenClaims} from '../../logic/entities/claims/tokenClaims';
 import {UserInfoClaims} from '../../logic/entities/claims/userInfoClaims';
 import {ClientError} from '../../logic/errors/clientError';
@@ -69,9 +69,59 @@ export class Authenticator {
     }
 
     /*
-     * Perform OAuth user info lookup when required
+     * Return Graph user info claims
      */
     public async getUserInfo(accessToken: string): Promise<UserInfoClaims> {
+
+        // We need to get a separate Graph API token to get user info
+        const userInfoAccessToken = await this._getUserInfoAccessToken(accessToken);
+
+        // Next look up user info and get claims
+        return this._getUserInfoClaims(userInfoAccessToken);
+    }
+
+    /*
+     * Use the Azure specific 'on behalf of' flow to get a token with permissions to call the user info endpoint
+     */
+    private async _getUserInfoAccessToken(accessToken: string): Promise<string> {
+
+        try {
+
+            const formData = new URLSearchParams();
+            formData.append('grant_type', 'urn:ietf:params:oauth:grant-type:jwt-bearer');
+            formData.append('assertion', accessToken);
+            formData.append('scope', this._configuration.graphClient.graphApiScope);
+            formData.append('requested_token_use', 'on_behalf_of');
+
+            const options = {
+                url: this._configuration.tokenEndpoint,
+                method: 'POST',
+                data: formData,
+                auth: {
+                    username: this._configuration.graphClient.clientId,
+                    password: this._configuration.graphClient.clientSecret
+                },
+                headers: {
+                    'content-type': 'application/x-www-form-urlencoded',
+                    'accept': 'application/json',
+                },
+                httpsAgent: this._httpProxy.agent,
+            };
+
+            const response = await axios.request(options as AxiosRequestConfig);
+            return response.data.access_token!;
+
+        } catch (e) {
+
+            // Report Graph errors clearly
+            throw ErrorFactory.fromUserInfoTokenGrantError(e, this._configuration.tokenEndpoint);
+        }
+    }
+
+    /*
+     * Perform OAuth user info lookup when required
+     */
+    private async _getUserInfoClaims(accessToken: string): Promise<UserInfoClaims> {
 
         try {
 
@@ -89,9 +139,10 @@ export class Authenticator {
             const response = await axios.request(options as AxiosRequestConfig);
             const userInfo = response.data;
 
+            // In my simple setup focused on developer convenience, the email is in the name setting
             const givenName = this._getClaim(userInfo.given_name, 'given_name');
             const familyName = this._getClaim(userInfo.family_name, 'family_name');
-            const email = this._getClaim(userInfo.email, 'email');
+            const email = this._getClaim(userInfo.email, 'name');
             return new UserInfoClaims(givenName, familyName, email);
 
         } catch (e) {
