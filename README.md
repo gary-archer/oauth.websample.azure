@@ -18,7 +18,7 @@ This requires more moving parts - see the [Final SPA Code Sample](https://github
 
 ## Prerequisites
 
-See the [Azure Overview](https://authguidance.com/2017/11/30/azure-active-directory-setup/) for a summary of behaviour and initial setup.\
+See the [Azure Overview](https://authguidance.com/2017/11/30/azure-active-directory-setup/) for details on the initial setup and SPA + API registration.\
 Then update the settings in these files to point to your own Azure AD instance and application instances:
 
 - spa/spa.config.json
