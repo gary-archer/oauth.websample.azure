@@ -61,8 +61,8 @@ export class ApiController {
         // Check that the access token allows access to this type of data
         const claims = this._getClaims(response);
 
-        // First check scopes
-        ScopeVerifier.enforce(claims.token.scopes, 'profile');
+        // I would like to enforce this scope here but it is not present due to Azure AD scope behaviour
+        // ScopeVerifier.enforce(claims.token.scopes, 'profile');
 
         // Create a user service and ask it for the user info
         const service = new UserInfoService(claims.userInfo);

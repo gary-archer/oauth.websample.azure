@@ -74,7 +74,7 @@ export class Authenticator {
     public async getUserInfo(accessToken: string): Promise<UserInfoClaims> {
 
         // We need to get a separate Graph API token to get user info
-        const userInfoAccessToken = await this._getUserInfoAccessToken(accessToken);
+        const userInfoAccessToken = await this._getGraphAccessToken(accessToken);
 
         // Next look up user info and get claims
         return this._getUserInfoClaims(userInfoAccessToken);
@@ -83,24 +83,22 @@ export class Authenticator {
     /*
      * Use the Azure specific 'on behalf of' flow to get a token with permissions to call the user info endpoint
      */
-    private async _getUserInfoAccessToken(accessToken: string): Promise<string> {
+    private async _getGraphAccessToken(accessToken: string): Promise<string> {
 
         try {
 
             const formData = new URLSearchParams();
             formData.append('grant_type', 'urn:ietf:params:oauth:grant-type:jwt-bearer');
+            formData.append('client_id', this._configuration.graphClient.clientId);
+            formData.append('client_secret', this._configuration.graphClient.clientSecret);
             formData.append('assertion', accessToken);
-            formData.append('scope', this._configuration.graphClient.graphApiScope);
+            formData.append('scope', this._configuration.graphClient.scope);
             formData.append('requested_token_use', 'on_behalf_of');
 
             const options = {
                 url: this._configuration.tokenEndpoint,
                 method: 'POST',
                 data: formData,
-                auth: {
-                    username: this._configuration.graphClient.clientId,
-                    password: this._configuration.graphClient.clientSecret
-                },
                 headers: {
                     'content-type': 'application/x-www-form-urlencoded',
                     'accept': 'application/json',
@@ -142,7 +140,7 @@ export class Authenticator {
             // In my simple setup focused on developer convenience, the email is in the name setting
             const givenName = this._getClaim(userInfo.given_name, 'given_name');
             const familyName = this._getClaim(userInfo.family_name, 'family_name');
-            const email = this._getClaim(userInfo.email, 'name');
+            const email = this._getClaim(userInfo.name, 'name');
             return new UserInfoClaims(givenName, familyName, email);
 
         } catch (e) {

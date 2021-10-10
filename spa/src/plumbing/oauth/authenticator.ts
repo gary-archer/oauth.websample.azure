@@ -148,6 +148,7 @@ export class Authenticator {
         };
 
         try {
+            
             // Start a login redirect
             await this._userManager.signinRedirect({
                 state: data,

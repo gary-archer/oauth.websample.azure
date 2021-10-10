@@ -4,5 +4,5 @@
 export interface OAuthClientConfiguration {
     clientId: string;
     clientSecret: string;
-    graphApiScope: string;
+    scope: string;
 }
