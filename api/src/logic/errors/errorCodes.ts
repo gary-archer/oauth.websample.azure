@@ -13,7 +13,7 @@ export class ErrorCodes {
     public static readonly serverError = 'server_error';
 
     // An error connecting downloading token signing public keys
-    public static readonly jwksDownloadError = 'jwks_download_failure'
+    public static readonly jwksDownloadError = 'jwks_download_failure';
 
     // A problem due to an invalid scope
     public static readonly insufficientScope = 'insufficient_scope';

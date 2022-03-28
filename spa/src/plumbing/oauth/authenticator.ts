@@ -257,7 +257,7 @@ export class Authenticator {
      * A more complete solution would be to store the refresh token in a secure cookie
      */
     private _clearRefreshToken(user: User): void {
-       
+
         user.refresh_token = '';
         this._userManager.storeUser(user);
     }

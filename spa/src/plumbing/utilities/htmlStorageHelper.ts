@@ -3,7 +3,7 @@
  */
 export class HtmlStorageHelper {
 
-    private static _prefix = 'basicspa.'
+    private static _prefix = 'basicspa.';
     private static _loggedInKey = 'loggedin';
     private static _externalLogoutKey = 'external-logout';
     private static _oidcLogLevelKeyName = 'oidc-log-level';

@@ -106,7 +106,7 @@ export class Authenticator {
                 httpsAgent: this._httpProxy.agent,
             };
 
-            const response = await axios.request(options as AxiosRequestConfig);
+            const response = await axios.request(options as AxiosRequestConfig) as any;
             return response.data.access_token!;
 
         } catch (e) {
@@ -135,7 +135,7 @@ export class Authenticator {
             };
 
             const response = await axios.request(options as AxiosRequestConfig);
-            const userInfo = response.data;
+            const userInfo = response.data as any;
 
             // In my simple setup focused on developer convenience, the email is in the name setting
             const givenName = this._getClaim(userInfo.given_name, 'given_name');
