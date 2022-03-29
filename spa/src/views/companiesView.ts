@@ -57,32 +57,32 @@ export class CompaniesView {
         const htmlTemplate =
             `<div class='card border-0'>
                 <div class='card-header row'>
-                <div class ='col-2 fw-bold text-end'>Account</div>
-                    <div class ='col-2 fw-bold text-end'>Region</div>
+                <div class ='col-2 fw-bold text-center'>Account</div>
+                    <div class ='col-2 fw-bold text-center'>Region</div>
                     <div class ='col-2'></div>
-                    <div class ='col-2 fw-bold text-right'>Target USD</div>
-                    <div class ='col-2 fw-bold text-right'>Investment USD</div>
-                    <div class ='col-2 fw-bold text-right'># Investors</div>
+                    <div class ='col-2 fw-bold text-end'>Target USD</div>
+                    <div class ='col-2 fw-bold text-end'>Investment USD</div>
+                    <div class ='col-2 fw-bold text-end'># Investors</div>
                 </div>
                 <div class='card-body'>
                     {{#companies}}
                         <div class='row listRow'>
-                            <div class='col-2 my-auto text-end'>
+                            <div class='col-2 my-auto text-center'>
                                 {{name}}
                             </div>
-                            <div class='col-2 my-auto text-end'>
+                            <div class='col-2 my-auto text-center'>
                                 {{region}}
                             </div>
-                            <div class='col-2 my-auto text-end'>
+                            <div class='col-2 my-auto text-center'>
                                 <a href='#company={{id}}'>View Transactions</a>
                             </div>
-                            <div class='col-2 my-auto moneycolor fw-bold text-right'>
+                            <div class='col-2 my-auto moneycolor fw-bold text-end'>
                                 {{formattedTargetUsd}}<br/>
                             </div>
-                            <div class='col-2 my-auto moneycolor fw-bold text-right'>
+                            <div class='col-2 my-auto moneycolor fw-bold text-end'>
                                 {{formattedInvestmentUsd}}
                             </div>
-                            <div class='col-2 my-auto fw-bold text-right'>
+                            <div class='col-2 my-auto fw-bold text-end'>
                                 {{noInvestors}}
                             </div>
                         </div>

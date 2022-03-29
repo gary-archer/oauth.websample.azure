@@ -19,9 +19,9 @@ export class ErrorView {
         const html =
             `<div class='card border-0'>
                 <div class='row'>
-                    <div id='errortitle' class='col-10 errorcolor largetext fw-bold text-end'>
+                    <div id='errortitle' class='col-10 errorcolor largetext fw-bold text-center'>
                     </div>
-                    <div class='col-2 text-right'>
+                    <div class='col-2 text-end'>
                         <button id='btnClearError' type='button'>x</button>
                     </div>
                 </div>
