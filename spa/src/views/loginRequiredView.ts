@@ -12,7 +12,7 @@ export class LoginRequiredView {
 
         const html =
             `<div class='row'>
-                <div class='col-12 text-center mx-auto'>
+                <div class='col-12 text-end mx-auto'>
                     <h5>You are logged out - click HOME to sign in ...</h5>
                 </div>
             </div>`;

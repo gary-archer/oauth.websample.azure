@@ -25,7 +25,7 @@ export class TitleView {
                 </div>
                 <div class='col-4 my-auto'>
                     <div class='text-right mx-auto'>
-                        <p id='username' class='font-weight-bold'></p>
+                        <p id='username' class='fw-bold'></p>
                     </div>
                 </div>
             </div>`;

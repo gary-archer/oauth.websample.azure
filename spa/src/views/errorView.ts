@@ -19,7 +19,7 @@ export class ErrorView {
         const html =
             `<div class='card border-0'>
                 <div class='row'>
-                    <div id='errortitle' class='col-10 errorcolor largetext font-weight-bold text-center'>
+                    <div id='errortitle' class='col-10 errorcolor largetext fw-bold text-end'>
                     </div>
                     <div class='col-2 text-right'>
                         <button id='btnClearError' type='button'>x</button>
@@ -92,7 +92,7 @@ export class ErrorView {
                     <div class='col-4'>
                         {{label}}
                     </div>
-                    <div class='col-8 valuecolor font-weight-bold'>
+                    <div class='col-8 valuecolor fw-bold'>
                         {{value}}
                     </div>
                 </div>
