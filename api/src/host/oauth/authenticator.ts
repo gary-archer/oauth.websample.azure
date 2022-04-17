@@ -1,12 +1,13 @@
 import axios, {AxiosRequestConfig} from 'axios';
-import {createRemoteJWKSet, jwtVerify} from 'jose';
-import {URL, URLSearchParams} from 'url';
+import {jwtVerify} from 'jose';
+import {URLSearchParams} from 'url';
 import {TokenClaims} from '../../logic/entities/claims/tokenClaims';
 import {UserInfoClaims} from '../../logic/entities/claims/userInfoClaims';
 import {ClientError} from '../../logic/errors/clientError';
 import {OAuthConfiguration} from '../configuration/oauthConfiguration';
 import {ErrorFactory} from '../errors/errorFactory';
 import {HttpProxy} from '../utilities/httpProxy';
+import {JwksRetriever} from './jwksRetriever';
 
 /*
  * The entry point for OAuth related operations
@@ -14,10 +15,12 @@ import {HttpProxy} from '../utilities/httpProxy';
 export class Authenticator {
 
     private readonly _configuration: OAuthConfiguration;
+    private readonly _jwksRetriever: JwksRetriever;
     private readonly _httpProxy: HttpProxy;
 
-    public constructor(configuration: OAuthConfiguration, httpProxy: HttpProxy) {
+    public constructor(configuration: OAuthConfiguration, jwksRetriever: JwksRetriever, httpProxy: HttpProxy) {
         this._configuration = configuration;
+        this._jwksRetriever = jwksRetriever;
         this._httpProxy = httpProxy;
     }
 
@@ -28,19 +31,13 @@ export class Authenticator {
 
         try {
 
-            // Download token signing public keys from the Authorization Server, which are then cached
-            const jwksOptions = {
-                agent: this._httpProxy.agent,
-            };
-            const remoteJwkSet = createRemoteJWKSet(new URL(this._configuration.jwksEndpoint), jwksOptions);
-
             // Perform the JWT validation according to best practices
             const options = {
                 algorithms: ['RS256'],
                 issuer: this._configuration.issuer,
                 audience: this._configuration.audience,
             };
-            const result = await jwtVerify(accessToken, remoteJwkSet, options);
+            const result = await jwtVerify(accessToken, this._jwksRetriever.remoteJWKSet, options);
 
             // Read protocol claims and Azure AD uses some vendor specific values
             const userId = this._getClaim(result.payload['oid'] as string, 'oid');
@@ -80,7 +77,7 @@ export class Authenticator {
     }
 
     /*
-     * Use the Azure specific 'on behalf of' flow to get a token with permissions to call the user info endpoint
+     * Use a user assertion to get a different token for the same user, with permissions to call the user info endpoint
      */
     private async _getGraphAccessToken(accessToken: string): Promise<string> {
 
