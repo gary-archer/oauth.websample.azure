@@ -1,9 +1,10 @@
-#/bin/bash
+#!/bin/bash
 
-######################################################################################################
-# A script to spin up the code sample, to be run from a macOS terminal or a Windows Git bash shell
-# Open source libraries are sued by the SPA and API, with Azure AD as the default Authorization Server
-######################################################################################################
+####################################################################
+# A script to spin up the code sample, to be run from a terminal
+# Open source libraries are used by the SPA and API
+# Azure Active Directory is used as the default Authorization Server
+####################################################################
 
 #
 # Get the platform
@@ -17,18 +18,30 @@ case "$(uname -s)" in
   MINGW64*)
     PLATFORM="WINDOWS"
 	;;
+
+  Linux)
+    PLATFORM="LINUX"
+	;;
 esac
 
 #
 # Run the SPA and API
 #
 if [ "$PLATFORM" == 'MACOS' ]; then
-    open -a Terminal ./spa/deploy.sh
-    open -a Terminal ./api/deploy.sh
-else
-    GIT_BASH="C:\Program Files\Git\git-bash.exe"
-    "$GIT_BASH" -c ./spa/deploy.sh &
-    "$GIT_BASH" -c ./api/deploy.sh &
+
+  open -a Terminal ./spa/deploy.sh
+  open -a Terminal ./api/deploy.sh
+
+elif [ "$PLATFORM" == 'WINDOWS' ]; then
+
+  GIT_BASH="C:\Program Files\Git\git-bash.exe"
+  "$GIT_BASH" -c ./spa/deploy.sh &
+  "$GIT_BASH" -c ./api/deploy.sh &
+
+elif [ "$PLATFORM" == 'LINUX' ]; then
+
+  gnome-terminal -- ./spa/deploy.sh
+  gnome-terminal -- ./api/deploy.sh
 fi
 
 #
@@ -42,7 +55,7 @@ API_URL='https://api.mycompany.com/api'
 #
 echo "Waiting for API to become available ..."
 while [ "$(curl -k -s -o /dev/null -w ''%{http_code}'' "$API_URL/companies")" != "401" ]; do
-    sleep 2s
+  sleep 2s
 done
 
 #
@@ -51,17 +64,18 @@ done
 echo "Waiting for SPA to become available ..."
 SPA_BUNDLE='./spa/dist/app.bundle.js'
 while [ ! -f "$SPA_BUNDLE" ]; do
-    sleep 2s
+  sleep 2s
 done
 
 #
 # Run the SPA in the default browser, then sign in with these credentials:
-#  standarduser@mycompany.com
-#  Password1
+# - guestuser@mycompany.com
+# - Password1
 #
 if [ "$PLATFORM" == 'MACOS' ]; then
-    open $SPA_URL
-fi
-if [ "$PLATFORM" == 'WINDOWS' ]; then
-    start $SPA_URL
+  open $SPA_URL
+elif [ "$PLATFORM" == 'WINDOWS' ]; then
+  start $SPA_URL
+elif [ "$PLATFORM" == 'LINUX' ]; then
+  xdg-open $SPA_URL
 fi

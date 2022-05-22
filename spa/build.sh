@@ -1,8 +1,10 @@
-#/bin/bash
+#!/bin/bash
 
 ######################################
 # A script to get the SPA's dependencies
 ######################################
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
-npm install
+if [ ! -d 'node_modules' ]; then
+  npm install
+fi
