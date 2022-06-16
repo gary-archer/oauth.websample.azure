@@ -39,8 +39,7 @@ Ensure that Node.js is installed, then run the following script from a macOS ter
 Custom development domains are used so you must add these entries to your hosts file:
 
 ```
-127.0.0.1 web.mycompany.com
-127.0.0.1 api.mycompany.com
+127.0.0.1 localhost web.mycompany.com api.mycompany.com
 ```
 
 Trust the root certificate that the build step downloads to your computer, in order for SSL to work in the browser.\
