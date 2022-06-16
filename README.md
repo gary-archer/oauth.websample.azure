@@ -18,6 +18,8 @@ A sample focused on intergating with Azure Active Directory using a standards ba
 The SPA is a simple UI with some basic navigation between views, to render fictional resources.\
 The data is returned from an API that authorizes using domain specific claims.
 
+![SPA Views](./doc/views.png)
+
 ## Prerequisites
 
 See the [Azure Overview](https://authguidance.com/2017/11/30/azure-active-directory-setup/) for details on the initial setup and SPA + API registration.\
