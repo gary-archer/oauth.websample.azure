@@ -30,7 +30,7 @@ Then update the settings in these files to point to your own Azure AD instance a
 
 ## Local Development Quick Start
 
-Ensure that Node.js is installed, then run the following script from a macOS terminal or from Git Bash on Windows:
+Ensure that Node.js is installed, then run the build script:
 
 ```bash
 ./build.sh
