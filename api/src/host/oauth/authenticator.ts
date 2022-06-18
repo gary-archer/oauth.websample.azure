@@ -39,7 +39,8 @@ export class Authenticator {
             };
             const result = await jwtVerify(accessToken, this._jwksRetriever.remoteJWKSet, options);
 
-            // Read protocol claims and Azure AD uses some vendor specific values
+            // The oid claim is the user account identifier
+            // The sub claim is a PPID value that is unique per application
             const userId = this._getClaim(result.payload['oid'] as string, 'oid');
             const scope = this._getClaim(result.payload['scp'] as string, 'scp');
             const expiry = result.payload.exp!;
