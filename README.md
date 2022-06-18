@@ -67,7 +67,7 @@ A browser will then be invoked, after which you can sign in with your own Azure 
 
 ## Programming Languages
 
-* Typescript is used, to develop the SPA in the simplest way
+* Plain Typescript is used, to build the SPA in the simplest way
 * Node.js and TypeScript are used to implement the API
 
 ## Infrastructure
