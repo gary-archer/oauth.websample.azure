@@ -236,7 +236,6 @@ export class App {
      */
     private _onStorageChange(event: StorageEvent): void {
 
-        console.log('*** Storage change');
         if (HtmlStorageHelper.isMultiTabLogoutEvent(event)) {
 
             this._authenticator!.onExternalLogout();
