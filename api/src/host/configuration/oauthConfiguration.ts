@@ -1,4 +1,4 @@
-import {OAuthClientConfiguration} from './oauthClientConfiguration';
+import {OAuthClientConfiguration} from './oauthClientConfiguration.js';
 
 /*
  * A holder for OAuth settings

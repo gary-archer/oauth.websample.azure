@@ -1,4 +1,4 @@
-import {UserInfoClaims} from '../entities/claims/userInfoClaims';
+import {UserInfoClaims} from '../entities/claims/userInfoClaims.js';
 
 /*
  * We can return any user data to our UI clients here, including both OAuth and non OAuth data
