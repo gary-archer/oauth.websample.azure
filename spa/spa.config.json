@@ -7,6 +7,6 @@
         "clientId":               "c5ea6d78-c637-4f7f-b238-2264f5d4b479",
         "redirectUri":            "https://web.mycompany.com/spa/",
         "postLogoutRedirectUri":  "https://web.mycompany.com/spa/loggedout.html",
-        "scope":                  "openid profile email api://cb398b43-96e8-48e6-8e8e-b168d5816c0e/transactions_read"
+        "scope":                  "openid profile email api://cb398b43-96e8-48e6-8e8e-b168d5816c0e/investments"
     }
 }
