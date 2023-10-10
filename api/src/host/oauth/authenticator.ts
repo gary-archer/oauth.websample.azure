@@ -130,7 +130,6 @@ export class Authenticator {
                 url: this._configuration.userInfoEndpoint,
                 method: 'GET',
                 headers: {
-                    'content-type': 'application/x-www-form-urlencoded',
                     'accept': 'application/json',
                     'Authorization': `Bearer ${accessToken}`,
                 },
