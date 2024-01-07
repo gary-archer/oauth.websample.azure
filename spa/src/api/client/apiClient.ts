@@ -1,11 +1,11 @@
 import axios, {Method} from 'axios';
 import {ErrorFactory} from '../../plumbing/errors/errorFactory';
+import {UIError} from '../../plumbing/errors/uiError';
 import {Authenticator} from '../../plumbing/oauth/authenticator';
 import {AxiosUtils} from '../../plumbing/utilities/axiosUtils';
 import {ApiUserInfo} from '../entities/apiUserInfo';
 import {Company} from '../entities/company';
 import {CompanyTransactions} from '../entities/companyTransactions';
-import { UIError } from '../../plumbing/errors/uiError';
 
 /*
  * Logic related to making API calls
@@ -51,14 +51,22 @@ export class ApiClient {
 
     /*
      * A central method to get data from an API and handle 401 retries
+     * This basic implementation only works if a single API request is in flight at a time
      */
     private async _callApi(path: string, method: Method, dataToSend?: any): Promise<any> {
 
         // Get the full path
         const url = `${this._apiBaseUrl}${path}`;
 
-        // Get the access token, and if it does not exist a login redirect will be triggered
+        // Get the access token
         let token = await this._authenticator.getAccessToken();
+        if (!token) {
+
+            // Trigger a login redirect if we cannot get an access token
+            // Also end the API request in a controlled way, by throwing an error that is not rendered
+            await this._authenticator.startLogin();
+            throw ErrorFactory.getFromLoginRequired();
+        }
 
         try {
 
@@ -74,7 +82,14 @@ export class ApiClient {
             }
 
             // If we received a 401 then try to refresh the access token
-            token = await this._authenticator.refreshAccessToken(error);
+            token = await this._authenticator.refreshAccessToken();
+            if (!token) {
+
+                // Trigger a login redirect if we cannot refresh the access token
+                // Also end the API request in a controlled way, by throwing an error that is not rendered
+                await this._authenticator.startLogin();
+                throw ErrorFactory.getFromLoginRequired();
+            }
 
             // Call the API again
             return await this._callApiWithToken(url, method, dataToSend, token);

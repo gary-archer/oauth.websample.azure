@@ -3,7 +3,6 @@ import urlparse from 'url-parse';
 import {OAuthConfiguration} from '../../configuration/oauthConfiguration';
 import {ErrorCodes} from '../errors/errorCodes';
 import {ErrorFactory} from '../errors/errorFactory';
-import {UIError} from '../errors/uiError';
 import {HtmlStorageHelper} from '../utilities/htmlStorageHelper';
 
 /*
@@ -12,7 +11,6 @@ import {HtmlStorageHelper} from '../utilities/htmlStorageHelper';
 export class Authenticator {
 
     private readonly _userManager: UserManager;
-    private _loginTime: number | null;
 
     public constructor(configuration: OAuthConfiguration) {
 
@@ -50,13 +48,12 @@ export class Authenticator {
 
         // Create the user manager
         this._userManager = new UserManager(settings);
-        this._loginTime = null;
     }
 
     /*
      * Get an access token and login if required
      */
-    public async getAccessToken(): Promise<string> {
+    public async getAccessToken(): Promise<string | null> {
 
         // On most calls we just return the existing token from memory
         const user = await this._userManager.getUser();
@@ -64,90 +61,46 @@ export class Authenticator {
             return user.access_token;
         }
 
-        // Otherwise try to refresh the access token
-        return this.refreshAccessToken(null);
+        // If the page has been reloaded, try a silent refresh to get an access token
+        return await this.refreshAccessToken();
     }
 
     /*
      * Try to refresh an access token
      */
-    public async refreshAccessToken(error: UIError | null): Promise<string> {
+    public async refreshAccessToken(): Promise<string | null> {
 
         // This flag avoids an unnecessary refresh attempt when the app first loads
         if (HtmlStorageHelper.isLoggedIn) {
-
-            // Protect against redirect loops if APIs are misconfigured
-            if (error != null) {
-                await this._preventRedirectLoop(error);
-            }
 
             // Use the traditional SPA solution if the page is reloaded
             await this._performAccessTokenRenewalViaIframeRedirect();
 
             // Return an access token if renewal was successful
+            // The SPA does not use refresh tokens, so remove one if received, to ensure iframe renewal
             const user = await this._userManager.getUser();
             if (user) {
 
-                // The authorization server should be configured to not return a refresh token to the SPA
                 if (user.refresh_token) {
                     user.refresh_token = '';
                     this._userManager.storeUser(user);
                 }
 
-                // Finally return the access token
                 if (user.access_token) {
                     return user.access_token;
                 }
             }
         }
 
-        // Trigger a login redirect if we cannot get an access token
-        // Also end the API request in a controlled way, by throwing an error that is not rendered
-        await this._startLogin();
-        throw ErrorFactory.getFromLoginRequired();
-    }
-
-    /*
-     * Handle the response from the authorization server
-     */
-    public async handleLoginResponse(): Promise<void> {
-        return this._handleLoginResponse();
-    }
-
-    /*
-     * Redirect in order to log out at the authorization server and remove vendor cookies
-     */
-    public async startLogout(): Promise<void> {
-        return this._startLogout();
-    }
-
-    /*
-     * Handler logout notifications from other browser tabs
-     */
-    public async onExternalLogout(): Promise<void> {
-        await this._resetDataOnLogout();
-    }
-
-    /*
-     * This method is for testing only, to make the access token in storage act like it has expired
-     */
-    public async expireAccessToken(): Promise<void> {
-
-        const user = await this._userManager.getUser();
-        if (user) {
-
-            // Add a character to the signature to make it fail validation
-            user.access_token = `${user.access_token}x`;
-            this._userManager.storeUser(user);
-        }
+        return null;
     }
 
     /*
      * Do the interactive login redirect on the main window
      */
-    private async _startLogin(): Promise<void> {
+    public async startLogin(): Promise<void> {
 
-        // Otherwise start a login redirect, by first storing the SPA's client side location
+        // Start a login redirect, by first storing the SPA's client side location
         // Some apps might also want to store form fields being edited in the state parameter
         const data = {
             hash: location.hash.length > 0 ? location.hash : '#',
@@ -170,7 +123,7 @@ export class Authenticator {
     /*
      * Handle the response from the authorization server
      */
-    private async _handleLoginResponse(): Promise<void> {
+    public async handleLoginResponse(): Promise<void> {
 
         // If the page loads with a state query parameter we classify it as an OAuth response
         const urlData = urlparse(location.href, true);
@@ -193,7 +146,6 @@ export class Authenticator {
 
                     // Update login state
                     HtmlStorageHelper.isLoggedIn = true;
-                    this._loginTime = new Date().getTime();
 
                 } catch (e: any) {
 
@@ -210,28 +162,9 @@ export class Authenticator {
     }
 
     /*
-     * If an API returns a 401 immediately after login, then the API configuration is wrong and will fail permanently
-     * In such cases, avoid a redirect loop for the user of the frontend app
-     * My app uses a small tolerance so that expiry testing also works
-     */
-    private async _preventRedirectLoop(error: UIError): Promise<void> {
-
-        if (this._loginTime! != null) {
-
-            const currentTime = new Date().getTime();
-            const millisecondsSinceLogin = currentTime - this._loginTime;
-            if (millisecondsSinceLogin < 250) {
-
-                await this._resetDataOnLogout();
-                throw error;
-            }
-        }
-    }
-
-    /*
      * Redirect in order to log out at the authorization server and remove the session cookie
      */
-    private async _startLogout(): Promise<void> {
+    public async startLogout(): Promise<void> {
 
         try {
 
@@ -245,6 +178,27 @@ export class Authenticator {
 
             // Handle failures
             throw ErrorFactory.getFromLogoutOperation(e, ErrorCodes.logoutRequestFailed);
+        }
+    }
+
+    /*
+     * Handler logout notifications from other browser tabs
+     */
+    public async onExternalLogout(): Promise<void> {
+        await this._resetDataOnLogout();
+    }
+
+    /*
+     * This method is for testing only, to make the access token in storage act like it has expired
+     */
+    public async expireAccessToken(): Promise<void> {
+
+        const user = await this._userManager.getUser();
+        if (user) {
+
+            // Add a character to the signature to make it fail validation
+            user.access_token = `${user.access_token}x`;
+            this._userManager.storeUser(user);
         }
     }
 
@@ -286,6 +240,5 @@ export class Authenticator {
 
         await this._userManager.removeUser();
         HtmlStorageHelper.isLoggedIn = false;
-        this._loginTime = null;
     }
 }
