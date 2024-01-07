@@ -232,11 +232,11 @@ export class App {
     }
 
     /*
-     * Handle logout notifications from other browser tabs, by listening to local storage events
+     * Handle logout notifications from other browser tabs
      */
     private _onStorageChange(event: StorageEvent): void {
 
-        if (HtmlStorageHelper.isMultiTabLogoutEvent(event)) {
+        if (HtmlStorageHelper.isLoggedOutEvent(event)) {
 
             this._authenticator!.onExternalLogout();
             location.hash = '#loggedout';
