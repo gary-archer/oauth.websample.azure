@@ -168,7 +168,8 @@ export class Authenticator {
 
         try {
 
-            // Instruct other tabs to logout
+            // Clear data and instruct other tabs to logout
+            await this._resetDataOnLogout();
             HtmlStorageHelper.raiseLoggedOutEvent();
 
             // Use a standard end session request redirect
@@ -182,7 +183,7 @@ export class Authenticator {
     }
 
     /*
-     * Handler logout notifications from other browser tabs
+     * Handle logout notifications from other browser tabs
      */
     public async onExternalLogout(): Promise<void> {
         await this._resetDataOnLogout();
@@ -223,7 +224,7 @@ export class Authenticator {
             if (e.error === ErrorCodes.loginRequired) {
 
                 // Clear token data and our code will then trigger a new login redirect
-                await this._userManager.removeUser();
+                await this._resetDataOnLogout();
 
             } else {
 
