@@ -139,11 +139,9 @@ export class Authenticator {
             const response = await axios.request(options as AxiosRequestConfig);
             const userInfo = response.data as any;
 
-            // In my simple setup focused on developer convenience, the email is in the name setting
             const givenName = ClaimsReader.getClaim(userInfo.given_name, 'given_name');
             const familyName = ClaimsReader.getClaim(userInfo.family_name, 'family_name');
-            const email = ClaimsReader.getClaim(userInfo.name, 'name');
-            return new UserInfoClaims(givenName, familyName, email);
+            return new UserInfoClaims(givenName, familyName);
 
         } catch (e: any) {
 
