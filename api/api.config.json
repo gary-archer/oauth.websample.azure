@@ -14,13 +14,13 @@
         "tokenEndpoint":                 "https://login.microsoftonline.com/7f071fbc-8bf2-4e61-bb48-dabd8e2f5b5a/oauth2/v2.0/token",
         "userInfoEndpoint":              "https://graph.microsoft.com/oidc/userinfo",
         "issuer":                        "https://login.microsoftonline.com/7f071fbc-8bf2-4e61-bb48-dabd8e2f5b5a/v2.0",
-        "audience":                      "cb398b43-96e8-48e6-8e8e-b168d5816c0e",
+        "audience":                      "552b475c-471d-43a1-9dfe-f6b895931110",
         "scope":                         "investments",
         "claimsCacheTimeToLiveMinutes":  15,
         "graphClient": {
-            "clientId":                  "cb398b43-96e8-48e6-8e8e-b168d5816c0e",
-            "clientSecret":              "rZv8Q~EdhQX2lR-Shr1Bv8Ndmq0lGGXpw6aq0cAl",
-            "scope":                     "openid profile email"
+            "clientId":                  "552b475c-471d-43a1-9dfe-f6b895931110",
+            "clientSecret":              "VFu8Q~i~l3Ysiji~jvBgmDphm_IhDLuuOTapkaCe",
+            "scope":                     "openid profile"
         }
     }
 }
