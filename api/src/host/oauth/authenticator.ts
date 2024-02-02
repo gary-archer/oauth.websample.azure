@@ -139,6 +139,9 @@ export class Authenticator {
             const response = await axios.request(options as AxiosRequestConfig);
             const userInfo = response.data as any;
 
+            console.log('*** GRAPH USER INFO ***');
+            console.log(JSON.stringify(userInfo));
+
             const givenName = ClaimsReader.getClaim(userInfo.given_name, 'given_name');
             const familyName = ClaimsReader.getClaim(userInfo.family_name, 'family_name');
             return new UserInfoClaims(givenName, familyName);

@@ -2,6 +2,7 @@ import {InMemoryWebStorage, UserManager, WebStorageStateStore} from 'oidc-client
 import {OAuthConfiguration} from '../../configuration/oauthConfiguration';
 import {ErrorCodes} from '../errors/errorCodes';
 import {ErrorFactory} from '../errors/errorFactory';
+import {UIError} from '../errors/uiError';
 import {HtmlStorageHelper} from '../utilities/htmlStorageHelper';
 
 /*
@@ -10,6 +11,7 @@ import {HtmlStorageHelper} from '../utilities/htmlStorageHelper';
 export class Authenticator {
 
     private readonly _userManager: UserManager;
+    private _loginTime: number | null;
 
     public constructor(configuration: OAuthConfiguration) {
 
@@ -47,6 +49,7 @@ export class Authenticator {
 
         // Create the user manager
         this._userManager = new UserManager(settings);
+        this._loginTime = null;
     }
 
     /*
@@ -78,16 +81,13 @@ export class Authenticator {
             // Return an access token if renewal was successful
             // The SPA does not use refresh tokens, so remove one if received, to ensure iframe renewal
             const user = await this._userManager.getUser();
-            if (user) {
+            if (user && user.refresh_token) {
+                user.refresh_token = '';
+                this._userManager.storeUser(user);
+            }
 
-                if (user.refresh_token) {
-                    user.refresh_token = '';
-                    this._userManager.storeUser(user);
-                }
-
-                if (user.access_token) {
-                    return user.access_token;
-                }
+            if (user && user.access_token) {
+                return user.access_token;
             }
         }
 
@@ -97,15 +97,17 @@ export class Authenticator {
     /*
      * Do the interactive login redirect on the main window
      */
-    public async startLogin(): Promise<void> {
-
-        // Start a login redirect, by first storing the SPA's client side location
-        // Some apps might also want to store form fields being edited in the state parameter
-        const data = {
-            hash: location.hash.length > 0 ? location.hash : '#',
-        };
+    public async startLogin(api401Error: UIError | null): Promise<void> {
 
         try {
+            // Start a login redirect, by first storing the SPA's client side location
+            // Some apps might also want to store form fields being edited in the state parameter
+            const data = {
+                hash: location.hash.length > 0 ? location.hash : '#',
+            };
+
+            // Handle a special case
+            await this._preventRedirectLoop(api401Error);
 
             // Start a login redirect
             await this._userManager.signinRedirect({
@@ -147,6 +149,9 @@ export class Authenticator {
                     // Update login state
                     HtmlStorageHelper.isLoggedIn = true;
 
+                    // The login time enables a check that avoids redirect loops when configuration is invalid
+                    this._loginTime = new Date().getTime();
+
                 } catch (e: any) {
 
                     // Handle and rethrow OAuth response errors
@@ -169,7 +174,7 @@ export class Authenticator {
         try {
 
             // Clear data and instruct other tabs to logout
-            await this._resetDataOnLogout();
+            await this.clearLoginState();
             HtmlStorageHelper.raiseLoggedOutEvent();
 
             // Use a standard end session request redirect
@@ -186,7 +191,17 @@ export class Authenticator {
      * Handle logout notifications from other browser tabs
      */
     public async onExternalLogout(): Promise<void> {
-        await this._resetDataOnLogout();
+        await this.clearLoginState();
+    }
+
+    /*
+     * Clean data when the session expires or the user logs out
+     */
+    public async clearLoginState(): Promise<void> {
+
+        await this._userManager.removeUser();
+        HtmlStorageHelper.isLoggedIn = false;
+        this._loginTime = null;
     }
 
     /*
@@ -222,7 +237,7 @@ export class Authenticator {
             if (e.error === ErrorCodes.loginRequired) {
 
                 // Clear token data and our code will then trigger a new login redirect
-                await this._resetDataOnLogout();
+                await this.clearLoginState();
 
             } else {
 
@@ -233,11 +248,21 @@ export class Authenticator {
     }
 
     /*
-     * Clean data when the session expires or the user logs out
+     * Iframe token refresh can fail due to SSO cookies being dropped during iframe token renewal
+     * This can create a cycle so this check prevents a redirect loop if a successful login has just completed
      */
-    private async _resetDataOnLogout(): Promise<void> {
+    private async _preventRedirectLoop(api401Error: UIError | null): Promise<void> {
 
-        await this._userManager.removeUser();
-        HtmlStorageHelper.isLoggedIn = false;
+        if (api401Error && this._loginTime) {
+
+            const currentTime = new Date().getTime();
+            const millisecondsSinceLogin = currentTime - this._loginTime;
+            if (millisecondsSinceLogin < 1000) {
+
+                // This causes an error to be presented after which a retry does a new top level redirect
+                await this.clearLoginState();
+                throw api401Error;
+            }
+        }
     }
 }
