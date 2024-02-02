@@ -141,12 +141,7 @@ export class ErrorFactory {
         parts.push(`URL: ${url}`);
         const details = parts.join(', ');
 
-        // Report 401 errors where the access token is rejected
-        if (status == 401) {
-            return ClientError.create401(details);
-        }
-
-        // Otherwise report technical failures
+        // Report technical failures
         const error = new ServerError(ErrorCodes.userinfoFailure, 'User info lookup failed', e.stack);
         error.details = details;
         return error;
