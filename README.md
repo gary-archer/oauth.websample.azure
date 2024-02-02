@@ -66,7 +66,7 @@ A browser will then be invoked, after which you can sign in with your own Azure 
 
 ## Programming Languages
 
-* Plain Typescript is used for the SPA, to explain OAuth behaviour in the simplest way
+* Plain TypeScript is used for the SPA, to explain OAuth behaviour in the simplest way
 * Node.js and TypeScript are used to implement the API
 
 ## Infrastructure
