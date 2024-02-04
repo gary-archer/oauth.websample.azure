@@ -44,7 +44,7 @@ export class HttpServerConfiguration {
 
         // A special API route to get user info from the Graph API
         this._express.get('/api/oauthuserinfo', this._catch(this._apiController.getOAuthUserInfo));
-        
+
         // API routes containing business logic
         this._express.get('/api/apiuserinfo', this._catch(this._apiController.getApiUserInfo));
         this._express.get('/api/companies', this._catch(this._apiController.getCompanyList));

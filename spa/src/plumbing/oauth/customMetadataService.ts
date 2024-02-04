@@ -1,4 +1,4 @@
-import {MetadataService, OidcClientSettingsStore, OidcMetadata} from 'oidc-client-ts';
+import {MetadataService, OidcClientSettingsStore} from 'oidc-client-ts';
 
 /*
  * An override to enable the user info endpoint to be routed via an API
@@ -13,6 +13,6 @@ export class CustomMetadataService extends MetadataService {
     }
 
     public async getUserInfoEndpoint(): Promise<string> {
-        return `${this._apiBaseUrl}/oauthuserinfo`
+        return `${this._apiBaseUrl}/oauthuserinfo`;
     }
 }

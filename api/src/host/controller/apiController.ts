@@ -63,7 +63,7 @@ export class ApiController {
         // Create a user service and ask it for the user info
         const claims = this._getClaims(response);
         const service = new UserInfoService(claims);
-        const oauthUserInfo = await service.getOAuthUserInfo()
+        const oauthUserInfo = await service.getOAuthUserInfo();
         ResponseWriter.writeSuccessResponse(response, 200, oauthUserInfo);
     }
 

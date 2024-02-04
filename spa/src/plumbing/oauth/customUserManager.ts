@@ -13,7 +13,7 @@ export default class CustomUserManager extends UserManager {
     public constructor(settings: UserManagerSettings, apiBaseUrl: string) {
 
         super(settings);
-        const metadataService = new CustomMetadataService(this.settings, apiBaseUrl)
+        const metadataService = new CustomMetadataService(this.settings, apiBaseUrl);
         this._client = new OidcClient(this.settings, metadataService);
     }
 }
