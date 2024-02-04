@@ -43,7 +43,8 @@ export class ApiClient {
     }
 
     /*
-     * We download user info from the API rather than using the id token
+     * The SPA's access token does not allow us to get user info from the authorization server
+     * Instead we route via the API which gets the OAuth user info using a different access token
      */
     public async getOAuthUserInfo(): Promise<ApiUserInfo> {
 
@@ -51,7 +52,7 @@ export class ApiClient {
     }
 
     /*
-     * We download user info from the API rather than using the id token
+     * We also download user attributes that are not stored in the API's own data
      */
     public async getApiUserInfo(): Promise<ApiUserInfo> {
 
