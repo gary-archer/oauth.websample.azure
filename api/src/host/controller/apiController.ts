@@ -12,9 +12,9 @@ import {ExtraClaimsProvider} from '../claims/extraClaimsProvider.js';
 import {Configuration} from '../configuration/configuration.js';
 import {ErrorFactory} from '../errors/errorFactory.js';
 import {ExceptionHandler} from '../errors/exceptionHandler.js';
-import {Authenticator} from '../oauth/authenticator.js';
 import {Authorizer} from '../oauth/authorizer.js';
 import {JwksRetriever} from '../oauth/jwksRetriever.js';
+import {OAuthClient} from '../oauth/oauthClient.js';
 import {HttpProxy} from '../utilities/httpProxy.js';
 import {ResponseWriter} from '../utilities/responseWriter.js';
 
@@ -24,7 +24,7 @@ import {ResponseWriter} from '../utilities/responseWriter.js';
 export class ApiController {
 
     private readonly _configuration: Configuration;
-    private readonly _jwksRetriever: JwksRetriever;
+    private readonly _oauthClient: OAuthClient;
     private readonly _claimsCache: ClaimsCache;
     private readonly _httpProxy: HttpProxy;
 
@@ -32,7 +32,8 @@ export class ApiController {
 
         this._configuration = configuration;
         this._httpProxy = new HttpProxy(this._configuration);
-        this._jwksRetriever = new JwksRetriever(this._configuration.oauth, this._httpProxy);
+        const jwksRetriever = new JwksRetriever(this._configuration.oauth, this._httpProxy);
+        this._oauthClient = new OAuthClient(this._configuration.oauth, jwksRetriever, this._httpProxy);
         this._claimsCache = new ClaimsCache(this._configuration.oauth);
         this._setupCallbacks();
     }
@@ -43,9 +44,8 @@ export class ApiController {
     public async authorizationHandler(request: Request, response: Response, next: NextFunction): Promise<void> {
 
         // Create authorization related classes on every API request
-        const authenticator = new Authenticator(this._configuration.oauth, this._jwksRetriever, this._httpProxy);
         const extraClaimsProvider = new ExtraClaimsProvider();
-        const authorizer = new Authorizer(this._claimsCache, authenticator, extraClaimsProvider);
+        const authorizer = new Authorizer(this._claimsCache, this._oauthClient, extraClaimsProvider);
 
         // Call the authorizer to do the work
         const claims = await authorizer.authorizeRequestAndGetClaims(request);
@@ -56,14 +56,26 @@ export class ApiController {
     }
 
     /*
-     * Return the user info claims from authorization
+     * Return OAuth user info, with user attributes stored in the authorization server
      */
-    public async getUserInfo(request: Request, response: Response): Promise<void> {
+    public async getOAuthUserInfo(request: Request, response: Response): Promise<void> {
 
         // Create a user service and ask it for the user info
         const claims = this._getClaims(response);
         const service = new UserInfoService(claims);
-        ResponseWriter.writeSuccessResponse(response, 200, service.getUserInfo());
+        const oauthUserInfo = await service.getOAuthUserInfo()
+        ResponseWriter.writeSuccessResponse(response, 200, oauthUserInfo);
+    }
+
+    /*
+     * Return API user info, with user attributes stored in the API's own data
+     */
+    public async getApiUserInfo(request: Request, response: Response): Promise<void> {
+
+        // Create a user service and ask it for the user info
+        const claims = this._getClaims(response);
+        const service = new UserInfoService(claims);
+        ResponseWriter.writeSuccessResponse(response, 200, service.getApiUserInfo());
     }
 
     /*
@@ -157,9 +169,9 @@ export class ApiController {
      */
     private _setupCallbacks(): void {
         this.authorizationHandler = this.authorizationHandler.bind(this);
-        this.getUserInfo = this.getUserInfo.bind(this);
+        this.getOAuthUserInfo = this.getOAuthUserInfo.bind(this);
+        this.getApiUserInfo = this.getApiUserInfo.bind(this);
         this.getCompanyList = this.getCompanyList.bind(this);
         this.getCompanyTransactions = this.getCompanyTransactions.bind(this);
-        this.getUserInfo = this.getUserInfo.bind(this);
     }
 }

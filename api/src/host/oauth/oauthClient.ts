@@ -1,7 +1,6 @@
 import axios, {AxiosRequestConfig} from 'axios';
 import {JWTPayload, JWTVerifyOptions, jwtVerify} from 'jose';
 import {URLSearchParams} from 'url';
-import {UserInfoClaims} from '../../logic/entities/claims/userInfoClaims.js';
 import {ClientError} from '../../logic/errors/clientError.js';
 import {ErrorCodes} from '../../logic/errors/errorCodes.js';
 import {ClaimsReader} from '../claims/claimsReader.js';
@@ -13,7 +12,7 @@ import {JwksRetriever} from './jwksRetriever.js';
 /*
  * The entry point for OAuth related operations
  */
-export class Authenticator {
+export class OAuthClient {
 
     private readonly _configuration: OAuthConfiguration;
     private readonly _jwksRetriever: JwksRetriever;
@@ -74,13 +73,13 @@ export class Authenticator {
     /*
      * Return Graph user info claims
      */
-    public async getUserInfo(accessToken: string): Promise<UserInfoClaims> {
+    public async getUserInfo(accessToken: string): Promise<any> {
 
-        // We need to get a separate Graph API token to get user info
+        // We need to get a new Graph API token in order to get user info
         const userInfoAccessToken = await this._getGraphAccessToken(accessToken);
 
-        // Next look up user info and get claims
-        return this._getUserInfoClaims(userInfoAccessToken);
+        // Next look up user info with the Graph access token
+        return this._getUserInfo(userInfoAccessToken);
     }
 
     /*
@@ -122,7 +121,7 @@ export class Authenticator {
     /*
      * Perform OAuth user info lookup when required
      */
-    private async _getUserInfoClaims(accessToken: string): Promise<UserInfoClaims> {
+    private async _getUserInfo(accessToken: string): Promise<any> {
 
         try {
 
@@ -137,11 +136,7 @@ export class Authenticator {
             };
 
             const response = await axios.request(options as AxiosRequestConfig);
-            const userInfo = response.data as any;
-
-            const givenName = ClaimsReader.getClaim(userInfo.given_name, 'given_name');
-            const familyName = ClaimsReader.getClaim(userInfo.family_name, 'family_name');
-            return new UserInfoClaims(givenName, familyName);
+            return response.data as any;
 
         } catch (e: any) {
 

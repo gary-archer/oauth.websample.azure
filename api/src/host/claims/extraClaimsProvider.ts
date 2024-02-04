@@ -12,7 +12,7 @@ export class ExtraClaimsProvider {
      */
     public async lookupExtraClaims(jwtClaims: JWTPayload): Promise<ExtraClaims> {
 
-        // Azure AD uses a PPID as the subject claim, which is different per application and a secure default
+        // Entra ID uses a PPID as the subject claim, which is different per application and a secure default
         // For a unique value that is the same across multiple apps, the object ID can be used
         const subject = ClaimsReader.getClaim(jwtClaims['oid'] as string, 'oid');
 

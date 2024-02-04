@@ -7,6 +7,7 @@ import {CustomMetadataService} from './customMetadataService';
  */
 export default class CustomUserManager extends UserManager {
 
+    // In TypeScript you can override protected readonly members in derived classes
     protected readonly _client: OidcClient;
 
     public constructor(settings: UserManagerSettings, apiBaseUrl: string) {

@@ -1,9 +1,7 @@
 import {ClaimsPrincipal} from '../entities/claims/claimsPrincipal.js';
 
 /*
- * The SPA usually gets OAuth user info from the authorization server
- * It then gets extra user attributes from the business data by calling the API
- * Due to the need to use the on behalf of flow, values from both sources are returned here
+ * The API provides two user info endpoints for the SPA
  */
 export class UserInfoService {
 
@@ -13,11 +11,23 @@ export class UserInfoService {
         this._claims = claims;
     }
 
-    public getUserInfo(): any {
+    /*
+     * Special handling to get information from the Entra ID OAuth user info endpoint
+     */
+    public getOAuthUserInfo(): any {
 
         return {
-            givenName: this._claims.userInfo.givenName,
-            familyName: this._claims.userInfo.familyName,
+            'given_name': 'John',
+            'family_name': 'Doe',
+        };
+    }
+
+    /*
+     * Get user attributes not stored in the authorization server
+     */
+    public async getApiUserInfo(): Promise<any> {
+
+        return {
             title: this._claims.extra.title,
             regions: this._claims.extra.regions,
         };

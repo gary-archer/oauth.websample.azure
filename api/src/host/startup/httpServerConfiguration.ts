@@ -42,12 +42,13 @@ export class HttpServerConfiguration {
         this._express.use('/api/*', this._catch(this._apiLogger.logRequest));
         this._express.use('/api/*', this._catch(this._apiController.authorizationHandler));
 
+        // A special API route to get user info from the Graph API
+        this._express.get('/api/oauthuserinfo', this._catch(this._apiController.getOAuthUserInfo));
+        
         // API routes containing business logic
-        this._express.get('/api/userinfo', this._catch(this._apiController.getUserInfo));
+        this._express.get('/api/apiuserinfo', this._catch(this._apiController.getApiUserInfo));
         this._express.get('/api/companies', this._catch(this._apiController.getCompanyList));
-        this._express.get(
-            '/api/companies/:id/transactions',
-            this._catch(this._apiController.getCompanyTransactions));
+        this._express.get('/api/companies/:id/transactions', this._catch(this._apiController.getCompanyTransactions));
 
         // Handle failure scenarios
         this._express.use('/api/*', this._apiController.onRequestNotFound);
