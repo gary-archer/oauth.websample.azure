@@ -81,7 +81,7 @@ export class ErrorFactory {
             responseData = e.response.data;
         }
 
-        // Parse the message and Azure AD uses the standard error / error_description fields in this response
+        // Parse the message and Entra ID uses the standard error / error_description fields in this response
         const parts: string[] = [];
         parts.push('Graph access token request failed');
         if (status) {
@@ -126,7 +126,7 @@ export class ErrorFactory {
             responseData = e.response.data;
         }
 
-        // Parse the message and Azure AD does not use the standard error / error_description fields in this response
+        // Parse the message, and Entra ID does not use the standard error / error_description fields in this response
         const parts: string[] = [];
         parts.push('User info lookup failed');
         if (status) {

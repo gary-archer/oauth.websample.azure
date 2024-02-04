@@ -39,15 +39,14 @@ export class Authenticator {
             silent_redirect_uri: configuration.redirectUri,
             automaticSilentRenew: false,
 
-            // The SPA's access token cannot get graph user info directly
-            // Therefore the SPA gets OAuth user info from an API endpoint
+            // The SPA gets OAuth user info via its own backend API
             loadUserInfo: false,
 
             // Indicate the logout return path and listen for logout events from other browser tabs
             post_logout_redirect_uri: configuration.postLogoutRedirectUri,
         };
 
-        // Create the user manager
+        // Create the custom user manager
         this._userManager = new UserManager(settings);
         this._loginTime = null;
     }
