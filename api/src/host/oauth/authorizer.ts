@@ -4,6 +4,7 @@ import {ClaimsPrincipal} from '../../logic/entities/claims/claimsPrincipal.js';
 import {ClientError} from '../../logic/errors/clientError.js';
 import {ClaimsCache} from '../claims/claimsCache.js';
 import {ExtraClaimsProvider} from '../claims/extraClaimsProvider.js';
+import {BearerToken} from './bearerToken.js';
 import {OAuthClient} from './oauthClient.js';
 
 /*
@@ -32,13 +33,13 @@ export class Authorizer {
     public async authorizeRequestAndGetClaims(request: Request): Promise<ClaimsPrincipal> {
 
         // First read the access token
-        const accessToken = this._readAccessToken(request);
+        const accessToken = BearerToken.read(request);
         if (!accessToken) {
             throw ClientError.create401('No access token was supplied in the bearer header');
         }
 
         // On every API request we validate the JWT, in a zero trust manner
-        const tokenClaims = await this._oauthClient.validateToken(accessToken);
+        const tokenClaims = await this._oauthClient.validateAccessToken(accessToken);
 
         // Return cached claims immediately if found
         const accessTokenHash = createHash('sha256').update(accessToken).digest('hex');
@@ -55,21 +56,5 @@ export class Authorizer {
 
         // Return the final claims used by the API's authorization logic
         return new ClaimsPrincipal(tokenClaims, extraClaims);
-    }
-
-    /*
-     * Try to read the token from the authorization header
-     */
-    private _readAccessToken(request: Request): string | null {
-
-        const authorizationHeader = request.header('authorization');
-        if (authorizationHeader) {
-            const parts = authorizationHeader.split(' ');
-            if (parts.length === 2 && parts[0].toLowerCase() === 'bearer') {
-                return parts[1];
-            }
-        }
-
-        return null;
     }
 }

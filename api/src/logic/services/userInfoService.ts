@@ -1,3 +1,4 @@
+import {OAuthClient} from '../../host/oauth/oauthClient.js';
 import {ClaimsPrincipal} from '../entities/claims/claimsPrincipal.js';
 
 /*
@@ -5,27 +6,25 @@ import {ClaimsPrincipal} from '../entities/claims/claimsPrincipal.js';
  */
 export class UserInfoService {
 
+    private readonly _oauthClient: OAuthClient;
     private readonly _claims: ClaimsPrincipal;
 
-    public constructor(claims: ClaimsPrincipal) {
+    public constructor(oauthClient: OAuthClient, claims: ClaimsPrincipal) {
+        this._oauthClient = oauthClient;
         this._claims = claims;
     }
 
     /*
      * Special handling to get information from the Entra ID OAuth user info endpoint
      */
-    public getOAuthUserInfo(): any {
-
-        return {
-            'given_name': 'John',
-            'family_name': 'Doe',
-        };
+    public async getOAuthUserInfo(accessToken: string): Promise<any> {
+        return await this._oauthClient.getUserInfo(accessToken);
     }
 
     /*
-     * Get user attributes not stored in the authorization server
+     * Return user attributes not stored in the authorization server to the UI for display
      */
-    public async getApiUserInfo(): Promise<any> {
+    public getApiUserInfo(): any {
 
         return {
             title: this._claims.extra.title,

@@ -13,6 +13,7 @@ import {Configuration} from '../configuration/configuration.js';
 import {ErrorFactory} from '../errors/errorFactory.js';
 import {ExceptionHandler} from '../errors/exceptionHandler.js';
 import {Authorizer} from '../oauth/authorizer.js';
+import {BearerToken} from '../oauth/bearerToken.js';
 import {JwksRetriever} from '../oauth/jwksRetriever.js';
 import {OAuthClient} from '../oauth/oauthClient.js';
 import {HttpProxy} from '../utilities/httpProxy.js';
@@ -62,8 +63,10 @@ export class ApiController {
 
         // Create a user service and ask it for the user info
         const claims = this._getClaims(response);
-        const service = new UserInfoService(claims);
-        const oauthUserInfo = await service.getOAuthUserInfo();
+        const service = new UserInfoService(this._oauthClient, claims);
+
+        const accessToken = BearerToken.read(request);
+        const oauthUserInfo = await service.getOAuthUserInfo(accessToken!);
         ResponseWriter.writeSuccessResponse(response, 200, oauthUserInfo);
     }
 
@@ -74,7 +77,7 @@ export class ApiController {
 
         // Create a user service and ask it for the user info
         const claims = this._getClaims(response);
-        const service = new UserInfoService(claims);
+        const service = new UserInfoService(this._oauthClient, claims);
         ResponseWriter.writeSuccessResponse(response, 200, service.getApiUserInfo());
     }
 

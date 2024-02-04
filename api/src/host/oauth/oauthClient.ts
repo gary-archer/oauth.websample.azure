@@ -27,7 +27,7 @@ export class OAuthClient {
     /*
      * Do standard JWT access token validation using the JOSE library
      */
-    public async validateToken(accessToken: string): Promise<JWTPayload> {
+    public async validateAccessToken(accessToken: string): Promise<JWTPayload> {
 
         const options = {
             algorithms: ['RS256'],
