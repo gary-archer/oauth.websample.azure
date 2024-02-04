@@ -10,13 +10,17 @@ export class UserInfoView {
 
     public async load(apiClient: ApiClient): Promise<void> {
 
-        // Make the request to get user info
-        const apiUserInfo = await apiClient.getUserInfo();
-        if (apiUserInfo) {
+        // Get information from the OAuth user info endpoint
+        const oauthUserInfo = await apiClient.getOAuthUserInfo();
+
+        // Get information from the API's own user attributes
+        const apiUserInfo = await apiClient.getApiUserInfo();
+
+        if (oauthUserInfo && apiUserInfo) {
 
             // Build a view model from the data
             const viewModel = {
-                userName: this.getUserNameForDisplay(apiUserInfo),
+                userName: this.getUserNameForDisplay(oauthUserInfo),
                 title: this.getUserTitle(apiUserInfo),
                 regions: this.getUserRegions(apiUserInfo),
             };
@@ -49,13 +53,13 @@ export class UserInfoView {
     /*
      * Get a name string using OAuth user info
      */
-    private getUserNameForDisplay(oauthUserInfo: ApiUserInfo): string {
+    private getUserNameForDisplay(oauthUserInfo: any): string {
 
-        if (!oauthUserInfo.givenName || !oauthUserInfo.familyName) {
+        if (!oauthUserInfo['given_name'] || !oauthUserInfo['family_name']) {
             return '';
         }
 
-        return `${oauthUserInfo.givenName} ${oauthUserInfo.familyName}`;
+        return `${oauthUserInfo['given_name']} ${oauthUserInfo['family_name']}`;
     }
 
     /*

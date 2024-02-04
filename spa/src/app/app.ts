@@ -94,7 +94,7 @@ export class App {
         this._configuration = await ConfigurationLoader.download('spa.config.json');
 
         // Initialise our OIDC Client wrapper
-        this._authenticator = new Authenticator(this._configuration.oauth, this._configuration.app.apiBaseUrl);
+        this._authenticator = new Authenticator(this._configuration.oauth);
 
         // Create a client to reliably call the API
         this._apiClient = new ApiClient(this._configuration.app.apiBaseUrl, this._authenticator);

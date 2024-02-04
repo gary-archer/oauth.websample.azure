@@ -45,7 +45,15 @@ export class ApiClient {
     /*
      * We download user info from the API rather than using the id token
      */
-    public async getUserInfo(): Promise<ApiUserInfo> {
+    public async getOAuthUserInfo(): Promise<ApiUserInfo> {
+
+        return await this._callApi('oauthuserinfo', 'GET') as ApiUserInfo;
+    }
+
+    /*
+     * We download user info from the API rather than using the id token
+     */
+    public async getApiUserInfo(): Promise<ApiUserInfo> {
 
         return await this._callApi('apiuserinfo', 'GET') as ApiUserInfo;
     }
