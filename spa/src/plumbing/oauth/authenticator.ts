@@ -1,19 +1,20 @@
-import {InMemoryWebStorage, UserManager, WebStorageStateStore} from 'oidc-client-ts';
+import {InMemoryWebStorage, WebStorageStateStore} from 'oidc-client-ts';
 import {OAuthConfiguration} from '../../configuration/oauthConfiguration';
 import {ErrorCodes} from '../errors/errorCodes';
 import {ErrorFactory} from '../errors/errorFactory';
 import {UIError} from '../errors/uiError';
 import {HtmlStorageHelper} from '../utilities/htmlStorageHelper';
+import CustomUserManager from './customUserManager';
 
 /*
  * The entry point for initiating login and token requests
  */
 export class Authenticator {
 
-    private readonly _userManager: UserManager;
+    private readonly _userManager: CustomUserManager;
     private _loginTime: number | null;
 
-    public constructor(configuration: OAuthConfiguration) {
+    public constructor(configuration: OAuthConfiguration, apiBaseUrl: string) {
 
         // Create OIDC settings from our application configuration
         const settings = {
@@ -39,16 +40,15 @@ export class Authenticator {
             silent_redirect_uri: configuration.redirectUri,
             automaticSilentRenew: false,
 
-            // The SPA's access token cannot get graph user info directly
-            // Therefore the SPA gets OAuth user info from an API endpoint
-            loadUserInfo: false,
+            // The SPA has special logic to get OAuth user info via its API
+            loadUserInfo: true,
 
             // Indicate the logout return path and listen for logout events from other browser tabs
             post_logout_redirect_uri: configuration.postLogoutRedirectUri,
         };
 
-        // Create the user manager
-        this._userManager = new UserManager(settings);
+        // Create the custom user manager
+        this._userManager = new CustomUserManager(settings, apiBaseUrl);
         this._loginTime = null;
     }
 
