@@ -1,4 +1,4 @@
-# OAuth Azure AD SPA and API Code Sample
+# OAuth SPA and API Code Sample using Microsoft Entra ID
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/87203e565f6d4ded9299896cdd741cc1)](https://app.codacy.com/gh/gary-archer/oauth.websample.azure?utm_source=github.com&utm_medium=referral&utm_content=gary-archer/oauth.websample.azure&utm_campaign=Badge_Grade)
 
@@ -7,7 +7,7 @@
 
 ## Overview
 
-A sample focused on intergating with Azure Active Directory using a standards based approach:
+A sample focused on intergating with Microsoft Entra ID using a standards based approach:
 
 - The SPA uses the traditional OpenID connect flow, with session management features
 - The API authorizes access to data using claims from multiple data sources
@@ -21,8 +21,8 @@ The data is returned from an API that authorizes using claims from multiple sour
 
 ## Prerequisites
 
-See the [Azure Overview](https://authguidance.com/2017/11/30/azure-active-directory-setup/) for details on the initial setup and SPA + API registration.\
-Then update the settings in these files to point to your own Azure AD instance and application instances:
+See the [Entra ID SPA and API Setup](https://authguidance.com/2017/11/30/azure-active-directory-setup/) for the Microsoft online configuration details.\
+Then update the settings in these files to point to your own Entra ID tenant:
 
 - spa/spa.config.json
 - api/api.config.json
@@ -53,11 +53,11 @@ Then run the following script to run the code for both SPA and API:
 ./run.sh
 ```
 
-A browser will then be invoked, after which you can sign in with your own Azure AD test user accounts.
+A browser will then be invoked, after which you can sign in with your own Entra ID test user accounts.
 
 ## Further Information
 
-* See the [Azure SPA Troubleshooting](https://authguidance.com/2017/12/01/azure-ad-spa-code-sample/) page to understand some vendor specific behaviour
+* See the [Entra ID SPA and API OAuth Flow](https://authguidance.com/azure-ad-troubleshooting/) page to understand some finer details
 
 ## ![Red icon](https://via.placeholder.com/15/f03c15/f03c15.png) 2021 Security Update
 
@@ -72,7 +72,7 @@ A browser will then be invoked, after which you can sign in with your own Azure 
 ## Infrastructure
 
 * Express is used to host both the API and the SPA content
-* Azure Active Directory is used as the default Authorization Server
+* Microsoft Entra ID is used as the default Authorization Server
 * The [oidc-client-ts](https://github.com/authts/oidc-client-ts) library is used by the SPA to implement OpenID Connect
 * The [jose](https://github.com/panva/jose) library is used by the API to validate JWT access tokens
 * The [node-cache](https://github.com/mpneuried/nodecache) library is used to cache extra claims, when access tokens are first received
