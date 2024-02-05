@@ -7,7 +7,7 @@
 
 ## Overview
 
-An OAuth sample focused on integating with Microsoft Entra ID using a standards based approach:
+An OAuth sample focused on integrating with Microsoft Entra ID using a standards based approach:
 
 - The SPA uses the traditional OpenID connect flow, with session management features
 - The API authorizes access to data using claims from multiple data sources
