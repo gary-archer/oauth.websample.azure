@@ -1,4 +1,4 @@
-# Entra ID OAuth SPA and API Code Sample
+# Entra ID SPA and API Code Sample
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/87203e565f6d4ded9299896cdd741cc1)](https://app.codacy.com/gh/gary-archer/oauth.websample.azure?utm_source=github.com&utm_medium=referral&utm_content=gary-archer/oauth.websample.azure&utm_campaign=Badge_Grade)
 
