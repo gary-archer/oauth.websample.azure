@@ -1,8 +1,8 @@
 #!/bin/bash
 
-###############################################################################
-# Use the curl and jq tools to set custom user attributes against user accounts
-###############################################################################
+####################################################################################
+# Use the curl and jq tools to populate custom user attributes against user accounts
+####################################################################################
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
@@ -53,7 +53,7 @@ MANAGER_ID="extension_${USER_EXTENSIONS_APP_CLIENT_ID}_manager_id"
 ROLE="extension_${USER_EXTENSIONS_APP_CLIENT_ID}_role"
 
 #
-# Send a graph request to set custom attributes for the guest user
+# Send a graph request to populate custom attributes for the guest user
 #
 REQUEST_JSON="{\"$MANAGER_ID\": \"10345\", \"$ROLE\": \"user\"}"
 echo 'Calling Graph API to update the guest user ...'
@@ -70,7 +70,7 @@ if [ "$HTTP_STATUS" != '204' ]; then
 fi
 
 #
-# Send a graph request to set custom attributes for the guest admin user
+# Send a graph request to populate custom attributes for the guest admin user
 #
 REQUEST_JSON="{\"$MANAGER_ID\": \"20116\", \"$ROLE\": \"admin\"}"
 echo 'Calling Graph API to update the guest admin ...'
@@ -85,13 +85,3 @@ if [ "$HTTP_STATUS" != '204' ]; then
   echo "*** Problem encountered updating the guest admin: $HTTP_STATUS"
   exit
 fi
-
-#
-# Then send a graph request to get users
-#
-curl "$GRAPH_API_BASE_URL/users/$GUEST_USER_ID" \
-    -H 'accept: application/json' \
-    -H "authorization: Bearer $ACCESS_TOKEN"
-curl "$GRAPH_API_BASE_URL/users/$GUEST_ADMIN_ID" \
-    -H 'accept: application/json' \
-    -H "authorization: Bearer $ACCESS_TOKEN"
