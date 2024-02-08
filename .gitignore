@@ -4,4 +4,5 @@ resources
 /api/certs
 /spa/dist/*
 !/spa/dist/loggedout.js
+utils/response.txt
 .DS_Store
