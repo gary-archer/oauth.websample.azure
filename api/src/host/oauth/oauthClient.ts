@@ -58,7 +58,7 @@ export class OAuthClient {
         }
 
         // The sample API requires the same scope for all endpoints, and it is enforced here
-        const scopes = ClaimsReader.getClaim(claims['scp'] as string, 'scp');
+        const scopes = ClaimsReader.getStringClaim(claims, 'scp');
         if (scopes.indexOf(this._configuration.scope) === -1) {
 
             throw new ClientError(

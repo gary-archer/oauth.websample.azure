@@ -1,3 +1,4 @@
+import { ClaimsReader } from '../../host/claims/claimsReader.js';
 import {ClaimsPrincipal} from '../entities/claims/claimsPrincipal.js';
 import {Company} from '../entities/company.js';
 import {CompanyTransactions} from '../entities/companyTransactions.js';
@@ -53,10 +54,15 @@ export class CompanyService {
      */
     private _isUserAuthorizedForCompany(company: Company): boolean {
 
-        // First authorize based on the user role
-        const isAdmin = this._claims.extra.role.toLowerCase().indexOf('admin') !== -1;
-        if (isAdmin) {
+        // The admin role is granted access to all resources
+        const role = ClaimsReader.getStringClaim(this._claims.jwt, 'custom_role');
+        if (role === 'admin') {
             return true;
+        }
+
+        // Unknown roles are granted no access to resources
+        if (role !== 'user') {
+            return false;
         }
 
         // Next authorize based on a business rule that links the user to regional data

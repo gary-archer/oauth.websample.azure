@@ -12,20 +12,22 @@ export class ExtraClaimsProvider {
      */
     public async lookupExtraClaims(jwtClaims: JWTPayload): Promise<ExtraClaims> {
 
-        // Entra ID uses a PPID as the subject claim, which is different per application and a secure default
-        // For a unique value that is the same across multiple apps, the object ID can be used
-        const subject = ClaimsReader.getClaim(jwtClaims['oid'] as string, 'oid');
-
         // A real API would use a database, but this API uses a mock implementation
-        if (subject === 'a724f361-38df-47b6-aa99-13723f77c47a') {
+        const managerId = ClaimsReader.getStringClaim(jwtClaims, 'custom_manager_id');
+        if (managerId === '20116') {
 
-            // These claims are used for the guestadmin user account
-            return new ExtraClaims('20116', 'admin', 'Global Manager', ['Europe', 'USA', 'Asia']);
+            // These claims are used for the guestadmin@mycompany.com user account
+            return new ExtraClaims('Global Manager', ['Europe', 'USA', 'Asia']);
+
+        } else if (managerId == '10345') {
+
+            // These claims are used for the guestuser@mycompany.com user account
+            return new ExtraClaims('Regional Manager', ['USA']);
 
         } else {
 
-            // These claims are used for the guestuser user account
-            return new ExtraClaims('10345', 'user', 'Regional Manager', ['USA']);
+            // Use empty claims for unrecognized users
+            return new ExtraClaims('', []);
         }
     }
 }
