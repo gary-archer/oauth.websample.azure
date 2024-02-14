@@ -29,7 +29,7 @@ Then update the settings in these files to point to your own Entra ID tenant:
 
 ## Local Development Quick Start
 
-Ensure that Node.js is installed, then run the build script:
+Ensure that Node.js 20+ is installed, then run the build script:
 
 ```bash
 ./build.sh
