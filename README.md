@@ -21,7 +21,7 @@ The data is returned from an API that authorizes using claims from multiple sour
 
 ## Prerequisites
 
-See the [Entra ID SPA and API Setup](https://authguidance.com/2017/11/30/azure-active-directory-setup/) for the Microsoft online configuration details.\
+See the [Entra ID SPA and API Setup](https://apisandclients.com/posts/azure-active-directory-setup) for the Microsoft online configuration details.\
 Then update the settings in these files to point to your own Entra ID tenant:
 
 - spa/spa.config.json
@@ -41,7 +41,7 @@ Custom development domains are used so you must add these entries to your hosts 
 127.0.0.1 localhost web.mycompany.com api.mycompany.com
 ```
 
-Next configure [Browser SSL Trust](https://authguidance.com/2017/11/11/developer-ssl-setup#browser) for the SSL root certificate:
+Next configure [Browser SSL Trust](https://apisandclients.com/posts/developer-ssl-setup) for the SSL root certificate:
 
 ```
 ./api/certs/localhost/mycompany.com.ca.pem
@@ -57,7 +57,7 @@ A browser will then be invoked, after which you can sign in with your own Entra 
 
 ## Further Information
 
-* See the [Entra ID SPA and API OAuth Flow](https://authguidance.com/azure-ad-troubleshooting/) page to understand some finer details
+* See the [Entra ID SPA and API OAuth Flow](https://apisandclients.com/posts/azure-ad-troubleshooting) page to understand some finer details
 
 ## ![Red icon](https://via.placeholder.com/15/f03c15/f03c15.png) 2021 Security Update
 
