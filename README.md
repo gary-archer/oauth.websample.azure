@@ -59,7 +59,7 @@ A browser will then be invoked, after which you can sign in with your own Entra 
 
 * See the [Entra ID SPA and API OAuth Flow](https://apisandclients.com/posts/azure-ad-troubleshooting) page to understand some finer details
 
-## ![Red icon](https://via.placeholder.com/15/f03c15/f03c15.png) 2021 Security Update
+## 2021 Security Update
 
 - In 2021 it is instead recommended to keep tokens out of the browser, using a Backend for Frontend
 - See the [Final SPA Code Sample](https://github.com/gary-archer/oauth.websample.final) for an API driven implementation
