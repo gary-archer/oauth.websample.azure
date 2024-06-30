@@ -12,10 +12,11 @@ import {ExtraClaimsProvider} from '../claims/extraClaimsProvider.js';
 import {Configuration} from '../configuration/configuration.js';
 import {ErrorFactory} from '../errors/errorFactory.js';
 import {ExceptionHandler} from '../errors/exceptionHandler.js';
-import {Authorizer} from '../oauth/authorizer.js';
+import {AccessTokenValidator} from '../oauth/accessTokenValidator.js';
 import {BearerToken} from '../oauth/bearerToken.js';
+import {GraphClient} from '../oauth/graphClient.js';
 import {JwksRetriever} from '../oauth/jwksRetriever.js';
-import {OAuthClient} from '../oauth/oauthClient.js';
+import {OAuthFilter} from '../oauth/oauthFilter.js';
 import {HttpProxy} from '../utilities/httpProxy.js';
 import {ResponseWriter} from '../utilities/responseWriter.js';
 
@@ -25,7 +26,7 @@ import {ResponseWriter} from '../utilities/responseWriter.js';
 export class ApiController {
 
     private readonly _configuration: Configuration;
-    private readonly _oauthClient: OAuthClient;
+    private readonly _jwksRetriever: JwksRetriever;
     private readonly _claimsCache: ClaimsCache;
     private readonly _httpProxy: HttpProxy;
 
@@ -33,8 +34,7 @@ export class ApiController {
 
         this._configuration = configuration;
         this._httpProxy = new HttpProxy(this._configuration);
-        const jwksRetriever = new JwksRetriever(this._configuration.oauth, this._httpProxy);
-        this._oauthClient = new OAuthClient(this._configuration.oauth, jwksRetriever, this._httpProxy);
+        this._jwksRetriever = new JwksRetriever(this._configuration.oauth, this._httpProxy);
         this._claimsCache = new ClaimsCache(this._configuration.oauth);
         this._setupCallbacks();
     }
@@ -45,11 +45,12 @@ export class ApiController {
     public async authorizationHandler(request: Request, response: Response, next: NextFunction): Promise<void> {
 
         // Create authorization related classes on every API request
+        const accessTokenValidator = new AccessTokenValidator(this._configuration.oauth, this._jwksRetriever);
         const extraClaimsProvider = new ExtraClaimsProvider();
-        const authorizer = new Authorizer(this._claimsCache, this._oauthClient, extraClaimsProvider);
+        const filter = new OAuthFilter(this._claimsCache, accessTokenValidator, extraClaimsProvider);
 
-        // Call the authorizer to do the work
-        const claims = await authorizer.authorizeRequestAndGetClaims(request);
+        // Call the filter to do the work
+        const claims = await filter.authorizeRequestAndGetClaims(request);
 
         // On success, set claims against the request context and move on to the service logic
         response.locals.claims = claims;
@@ -61,12 +62,13 @@ export class ApiController {
      */
     public async getOAuthUserInfo(request: Request, response: Response): Promise<void> {
 
-        // Create a user service and ask it for the user info
-        const claims = this._getClaims(response);
-        const service = new UserInfoService(this._oauthClient, claims);
+        // Create a user service
+        const service = new UserInfoService();
+        const graphClient = new GraphClient(this._configuration.oauth, this._httpProxy);
 
+        // A Graph client is used to look up OAuth user info
         const accessToken = BearerToken.read(request);
-        const oauthUserInfo = await service.getOAuthUserInfo(accessToken!);
+        const oauthUserInfo = await service.getOAuthUserInfo(accessToken || '', graphClient);
         ResponseWriter.writeSuccessResponse(response, 200, oauthUserInfo);
     }
 
@@ -77,8 +79,9 @@ export class ApiController {
 
         // Create a user service and ask it for the user info
         const claims = this._getClaims(response);
-        const service = new UserInfoService(this._oauthClient, claims);
-        ResponseWriter.writeSuccessResponse(response, 200, service.getApiUserInfo());
+        const service = new UserInfoService();
+        const userinfo = service.getApiUserInfo(claims);
+        ResponseWriter.writeSuccessResponse(response, 200, userinfo);
     }
 
     /*

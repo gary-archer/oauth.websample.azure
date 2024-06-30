@@ -4,26 +4,26 @@ import {ClaimsPrincipal} from '../../logic/entities/claims/claimsPrincipal.js';
 import {ClientError} from '../../logic/errors/clientError.js';
 import {ClaimsCache} from '../claims/claimsCache.js';
 import {ExtraClaimsProvider} from '../claims/extraClaimsProvider.js';
+import {AccessTokenValidator} from './accessTokenValidator.js';
 import {BearerToken} from './bearerToken.js';
-import {OAuthClient} from './oauthClient.js';
 
 /*
- * The entry point for the processing to validate tokens and lookup claims
+ * The entry point for the processing to validate tokens and look up claims
  * Our approach provides extensible claims to our API and enables good performance
  */
-export class Authorizer {
+export class OAuthFilter {
 
     private readonly _cache: ClaimsCache;
-    private readonly _oauthClient: OAuthClient;
+    private readonly _accessTokenValidator: AccessTokenValidator;
     private readonly _extraClaimsProvider: ExtraClaimsProvider;
 
     public constructor(
         cache: ClaimsCache,
-        oauthClient: OAuthClient,
+        accessTokenValidator: AccessTokenValidator,
         extraClaimsProvider: ExtraClaimsProvider) {
 
         this._cache = cache;
-        this._oauthClient = oauthClient;
+        this._accessTokenValidator = accessTokenValidator;
         this._extraClaimsProvider = extraClaimsProvider;
     }
 
@@ -39,11 +39,11 @@ export class Authorizer {
         }
 
         // On every API request we validate the JWT, in a zero trust manner
-        const tokenClaims = await this._oauthClient.validateAccessToken(accessToken);
+        const tokenClaims = await this._accessTokenValidator.validateAccessToken(accessToken);
 
         // Return cached claims immediately if found
         const accessTokenHash = createHash('sha256').update(accessToken).digest('hex');
-        let extraClaims = await this._cache.getClaimsForToken(accessTokenHash);
+        let extraClaims = this._cache.getClaimsForToken(accessTokenHash);
         if (extraClaims) {
             return new ClaimsPrincipal(tokenClaims, extraClaims);
         }
@@ -52,7 +52,7 @@ export class Authorizer {
         extraClaims = await this._extraClaimsProvider.lookupExtraClaims(tokenClaims);
 
         // Cache the extra claims for subsequent requests with the same access token
-        await this._cache.addClaimsForToken(accessTokenHash, extraClaims, tokenClaims.exp!);
+        this._cache.addClaimsForToken(accessTokenHash, extraClaims, tokenClaims.exp || 0);
 
         // Return the final claims used by the API's authorization logic
         return new ClaimsPrincipal(tokenClaims, extraClaims);

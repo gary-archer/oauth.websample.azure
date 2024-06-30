@@ -3,7 +3,7 @@ import {OAuthConfiguration} from '../configuration/oauthConfiguration.js';
 import {HttpProxy} from '../utilities/httpProxy.js';
 
 /*
- * A singleton that caches the result of createRemoteJWKSet, to ensure efficient lookup
+ * A singleton that caches the result of token signing public key lookup
  */
 export class JwksRetriever {
 
