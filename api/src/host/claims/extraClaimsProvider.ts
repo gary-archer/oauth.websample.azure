@@ -8,7 +8,7 @@ import {ClaimsReader} from './claimsReader.js';
 export class ExtraClaimsProvider {
 
     /*
-     * Get claims from the API's own database based on the subkect claim in an AWS Cognito access token
+     * Get claims from the API's own database based on the subject claim in the access token
      */
     public async lookupExtraClaims(jwtClaims: JWTPayload): Promise<ExtraClaims> {
 
