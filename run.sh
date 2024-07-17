@@ -68,9 +68,7 @@ while [ ! -f "$SPA_BUNDLE" ]; do
 done
 
 #
-# Run the SPA in the default browser, then sign in with these credentials:
-# - guestuser@example.com
-# - Password1
+# Run the SPA in the default browser
 #
 if [ "$PLATFORM" == 'MACOS' ]; then
   open $SPA_URL
