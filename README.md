@@ -7,22 +7,23 @@
 
 ## Overview
 
-An OAuth sample focused on integrating with Microsoft Entra ID using a standards based approach:
+An OAuth code sample to run the [updated SPA and API code sample](https://github.com/gary-archer/oauth.websample1) in Microsoft Entra ID.\
+The goal is to demonstrate code portability, where these features work the same regardless of the authorization server:
 
-- The SPA uses the traditional OpenID connect flow, with session management features
-- The API authorizes access to data using claims from multiple data sources
+- The SPA uses the traditional OpenID connect flow, with session management features.
+- The API comsines claims-based authorization with finer-grained business permissions.
+- The SPA and API use user attributes from both the OpenID Connect userinfo endpoint and its API.
 
 ## Views
 
-The SPA is a simple UI with some basic navigation between views, to render fictional resources.\
-The data is returned from an API that authorizes using claims from multiple sources.
+The SPA is a simple UI with some basic navigation between views, to render fictional investment resources.
 
 ![SPA Views](./images/views.png)
 
 ## Prerequisites
 
 See the [Entra ID SPA and API Setup](https://apisandclients.com/posts/azure-active-directory-setup) for the Microsoft online configuration details.\
-Then update the settings in these files to point to your own Entra ID tenant:
+You could configure all of the settings and then update these configuration files to point to your own Entra ID tenant:
 
 - spa/spa.config.json
 - api/api.config.json
@@ -35,7 +36,7 @@ Ensure that Node.js 20+ is installed, then run the build script:
 ./build.sh
 ```
 
-Custom development domains are used so you must add these entries to your hosts file:
+You must use custom development domains and add these DNS entries to your hosts file:
 
 ```
 127.0.0.1 localhost www.authsamples-dev.com api.authsamples-dev.com
@@ -53,26 +54,26 @@ Then run the following script to run the code for both SPA and API:
 ./run.sh
 ```
 
-A browser will then be invoked, after which you can sign in with your own Entra ID test user accounts.
+The system browser runs and you can sign in with your own Entra ID user accounts.
 
 ## Further Information
 
-* See the [Entra ID SPA and API OAuth Flow](https://apisandclients.com/posts/azure-ad-troubleshooting) page to understand some finer details
+* See the [Entra ID SPA and API OAuth Flow](https://apisandclients.com/posts/azure-ad-troubleshooting) page to understand some finer details.
 
 ## 2021 Security Update
 
-- In 2021 it is instead recommended to keep tokens out of the browser, using a Backend for Frontend
-- See the [Final SPA Code Sample](https://github.com/gary-archer/oauth.websample.final) for an API driven implementation
+$\color{red}{\textsf{The initial SPA uses OAuth tokens in JavaScript code, as the simplest way to get integrated.}}$\
+$\color{red}{\textsf{In 2021 it is instead recommended to keep tokens out of the browser to limit the impact of XSS exploits.}}$\
+See the [Final SPA Code Sample](https://github.com/gary-archer/oauth.websample.final) for a more secure implementation.
 
 ## Programming Languages
 
-* Plain TypeScript is used for the SPA, to explain OAuth behaviour in the simplest way
-* Node.js and TypeScript are used to implement the API
+* The SPA and its views use plain TypeScript code.
+* The API uses Node.js and TypeScript.
 
 ## Infrastructure
 
-* Express is used to host both the API and the SPA content
-* Microsoft Entra ID is used as the default Authorization Server
-* The [oidc-client-ts](https://github.com/authts/oidc-client-ts) library is used by the SPA to implement OpenID Connect
-* The [jose](https://github.com/panva/jose) library is used by the API to validate JWT access tokens
-* The [node-cache](https://github.com/mpneuried/nodecache) library is used to cache extra claims, when access tokens are first received
+* Express is used as the HTTP server for both the API and the SPA's web static content.
+* The SPA uses the [oidc-client-ts](https://github.com/authts/oidc-client-ts) library to implement OpenID Connect.
+* The API uses the [jose](https://github.com/panva/jose) library to validate JWT access tokens.
+* Microsoft Entra ID is the default authorization server for the SPA and API.
