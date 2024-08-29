@@ -11,8 +11,8 @@ An OAuth code sample to run the [updated SPA and API code sample](https://github
 The goal is to demonstrate code portability, where these features work the same regardless of the authorization server:
 
 - The SPA uses the traditional OpenID connect flow, with session management features.
-- The API comsines claims-based authorization with finer-grained business permissions.
-- The SPA and API use user attributes from both the OpenID Connect userinfo endpoint and its API.
+- The API combines claims-based authorization with finer-grained business permissions.
+- The SPA and API use both OAuth user attributes and business user attributes.
 
 ## Views
 
