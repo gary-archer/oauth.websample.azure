@@ -42,7 +42,7 @@ You must use custom development domains and add these DNS entries to your hosts 
 127.0.0.1 localhost www.authsamples-dev.com api.authsamples-dev.com
 ```
 
-Next configure [Browser SSL Trust](https://apisandclients.com/posts/developer-ssl-setup) for the SSL root certificate:
+Next configure [Browser SSL Trust](https://apisandclients.com/posts/developer-ssl-setup#trust-a-root-certificate-in-browsers) for the SSL root certificate:
 
 ```
 ./api/certs/localhost/authsamples-dev.com.ca.crt
@@ -63,7 +63,7 @@ The system browser runs and you can sign in with your own Entra ID user accounts
 ## 2021 Security Update
 
 $\color{red}{\textsf{The initial SPA uses OAuth tokens in JavaScript code, as the simplest way to get integrated.}}$\
-$\color{red}{\textsf{In 2021 it is instead recommended to keep tokens out of the browser to limit the impact of XSS exploits.}}$\
+$\color{red}{\textsf{In 2021 the best practice is to keep tokens out of the browser, to limit the impact of XSS exploits.}}$\
 See the [Final SPA Code Sample](https://github.com/gary-archer/oauth.websample.final) for a more secure implementation.
 
 ## Programming Languages
