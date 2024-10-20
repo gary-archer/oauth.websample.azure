@@ -22,7 +22,7 @@ The SPA is a simple UI with some basic navigation between views, to render ficti
 
 ## Prerequisites
 
-See the [Entra ID SPA and API Setup](https://apisandclients.com/posts/azure-active-directory-setup) for the Microsoft online configuration details.\
+See the [Entra ID SPA and API Setup](https://github.com/gary-archer/oauth.blog/tree/master/public/posts/azure-active-directory-setup.mdx) for the Microsoft online configuration details.\
 You could configure all of the settings and then update these configuration files to point to your own Entra ID tenant:
 
 - spa/spa.config.json
@@ -42,7 +42,7 @@ You must use custom development domains and add these DNS entries to your hosts 
 127.0.0.1 localhost www.authsamples-dev.com api.authsamples-dev.com
 ```
 
-Next configure [Browser SSL Trust](https://apisandclients.com/posts/developer-ssl-setup#trust-a-root-certificate-in-browsers) for the SSL root certificate:
+Next configure [Browser SSL Trust](https://github.com/gary-archer/oauth.blog/tree/master/public/posts/developer-ssl-setup.mdx#trust-a-root-certificate-in-browsers) for the SSL root certificate:
 
 ```
 ./api/certs/localhost/authsamples-dev.com.ca.crt
@@ -58,7 +58,7 @@ The system browser runs and you can sign in with your own Entra ID user accounts
 
 ## Further Information
 
-* See the [Entra ID SPA and API OAuth Flow](https://apisandclients.com/posts/azure-ad-troubleshooting) page to understand some finer details.
+* See the [Entra ID SPA and API OAuth Flow](https://github.com/gary-archer/oauth.blog/tree/master/public/posts/azure-ad-troubleshooting.mdx) page to understand some finer details.
 
 ## 2021 Security Update
 
