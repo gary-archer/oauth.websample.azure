@@ -19,8 +19,8 @@ export class UserInfoService {
     public getApiUserInfo(claims: ClaimsPrincipal): any {
 
         return {
-            title: claims.extra.title,
-            regions: claims.extra.regions,
+            title: claims.getExtra().getTitle(),
+            regions: claims.getExtra().getRegions(),
         };
     }
 }

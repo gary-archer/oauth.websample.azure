@@ -10,8 +10,8 @@ import {HtmlStorageHelper} from '../utilities/htmlStorageHelper';
  */
 export class Authenticator {
 
-    private readonly _userManager: UserManager;
-    private _loginTime: number | null;
+    private readonly userManager: UserManager;
+    private loginTime: number | null;
 
     public constructor(configuration: OAuthConfiguration) {
 
@@ -47,8 +47,8 @@ export class Authenticator {
         };
 
         // Create the custom user manager
-        this._userManager = new UserManager(settings);
-        this._loginTime = null;
+        this.userManager = new UserManager(settings);
+        this.loginTime = null;
     }
 
     /*
@@ -57,7 +57,7 @@ export class Authenticator {
     public async getAccessToken(): Promise<string | null> {
 
         // On most calls we just return the existing token from memory
-        const user = await this._userManager.getUser();
+        const user = await this.userManager.getUser();
         if (user && user.access_token) {
             return user.access_token;
         }
@@ -75,14 +75,14 @@ export class Authenticator {
         if (HtmlStorageHelper.isLoggedIn) {
 
             // Use the traditional SPA solution if the page is reloaded
-            await this._performAccessTokenRenewalViaIframeRedirect();
+            await this.performAccessTokenRenewalViaIframeRedirect();
 
             // Return an access token if renewal was successful
             // The SPA does not use refresh tokens, so remove one if received, to ensure iframe renewal
-            const user = await this._userManager.getUser();
+            const user = await this.userManager.getUser();
             if (user && user.refresh_token) {
                 user.refresh_token = '';
-                this._userManager.storeUser(user);
+                this.userManager.storeUser(user);
             }
 
             if (user && user.access_token) {
@@ -106,10 +106,10 @@ export class Authenticator {
             };
 
             // Handle a special case
-            await this._preventRedirectLoop(api401Error);
+            await this.preventRedirectLoop(api401Error);
 
             // Start a login redirect
-            await this._userManager.signinRedirect({
+            await this.userManager.signinRedirect({
                 state: data,
             });
 
@@ -131,16 +131,16 @@ export class Authenticator {
         if (state) {
 
             // Only try to process a login response if the state exists
-            const storedState = await this._userManager.settings.stateStore?.get(state);
+            const storedState = await this.userManager.settings.stateStore?.get(state);
             if (storedState) {
 
                 let redirectLocation = '#';
                 try {
 
                     // Handle the login response and save tokens to memory
-                    const user = await this._userManager.signinRedirectCallback();
+                    const user = await this.userManager.signinRedirectCallback();
                     user.refresh_token = '';
-                    this._userManager.storeUser(user);
+                    this.userManager.storeUser(user);
 
                     // We will return to the app location before the login redirect
                     redirectLocation = (user.state as any).hash;
@@ -149,7 +149,7 @@ export class Authenticator {
                     HtmlStorageHelper.isLoggedIn = true;
 
                     // The login time enables a check that avoids redirect loops when configuration is invalid
-                    this._loginTime = new Date().getTime();
+                    this.loginTime = new Date().getTime();
 
                 } catch (e: any) {
 
@@ -177,7 +177,7 @@ export class Authenticator {
             HtmlStorageHelper.raiseLoggedOutEvent();
 
             // Use a standard end session request redirect
-            await this._userManager.signoutRedirect();
+            await this.userManager.signoutRedirect();
 
         } catch (e: any) {
 
@@ -198,9 +198,9 @@ export class Authenticator {
      */
     public async clearLoginState(): Promise<void> {
 
-        await this._userManager.removeUser();
+        await this.userManager.removeUser();
         HtmlStorageHelper.isLoggedIn = false;
-        this._loginTime = null;
+        this.loginTime = null;
     }
 
     /*
@@ -208,12 +208,12 @@ export class Authenticator {
      */
     public async expireAccessToken(): Promise<void> {
 
-        const user = await this._userManager.getUser();
+        const user = await this.userManager.getUser();
         if (user) {
 
             // Add a character to the signature to make it fail validation
             user.access_token = `${user.access_token}x`;
-            this._userManager.storeUser(user);
+            this.userManager.storeUser(user);
         }
     }
 
@@ -222,14 +222,14 @@ export class Authenticator {
      * This will fail if there is no authorization server SSO cookie or if it does not use SameSite=none
      * It will always fail in the Safari browser, which will refuse to send the cookie from an iframe
      */
-    private async _performAccessTokenRenewalViaIframeRedirect(): Promise<void> {
+    private async performAccessTokenRenewalViaIframeRedirect(): Promise<void> {
 
         try {
 
             // Redirect on an iframe using the authorization server session cookie and prompt=none
             // This instructs the authorization server to not render the login page on the iframe
             // If the request fails there should be a login_required error returned from the Authorization Server
-            await this._userManager.signinSilent();
+            await this.userManager.signinSilent();
 
         } catch (e: any) {
 
@@ -250,12 +250,12 @@ export class Authenticator {
      * Iframe token refresh can fail due to SSO cookies being dropped during iframe token renewal
      * This can create a cycle so this check prevents a redirect loop if a successful login has just completed
      */
-    private async _preventRedirectLoop(api401Error: UIError | null): Promise<void> {
+    private async preventRedirectLoop(api401Error: UIError | null): Promise<void> {
 
-        if (api401Error && this._loginTime) {
+        if (api401Error && this.loginTime) {
 
             const currentTime = new Date().getTime();
-            const millisecondsSinceLogin = currentTime - this._loginTime;
+            const millisecondsSinceLogin = currentTime - this.loginTime;
             if (millisecondsSinceLogin < 1000) {
 
                 // This causes an error to be presented after which a retry does a new top level redirect
