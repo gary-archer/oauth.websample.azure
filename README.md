@@ -30,22 +30,36 @@ You could configure all of the settings and then update these configuration file
 
 ## Local Development Quick Start
 
-Ensure that Node.js 20+ is installed, then run the build script:
+To run the code sample locally you must configure some infrastructure before you run the code.
+
+### Configure DNS and SSL
+
+Configure custom development domains by adding these DNS entries to your hosts file:
 
 ```bash
-./build.sh
-```
-
-You must use custom development domains and add these DNS entries to your hosts file:
-
-```
 127.0.0.1 localhost www.authsamples-dev.com api.authsamples-dev.com
 ```
 
-Next configure [Browser SSL Trust](https://github.com/gary-archer/oauth.blog/tree/master/public/posts/developer-ssl-setup.mdx#trust-a-root-certificate-in-browsers) for the SSL root certificate:
+Install OpenSSL if required, then create a folder in which to create development certificates for the SPA:
 
+```bash
+export SECRETS_FOLDER='~/secrets'
+mkdir ~/secrets
+./certs/create.sh
 ```
-./api/certs/localhost/authsamples-dev.com.ca.crt
+
+Finally, configure [Browser SSL Trust](https://github.com/gary-archer/oauth.blog/tree/master/public/posts/developer-ssl-setup.mdx#trust-a-root-certificate-in-browsers) for the SSL root certificate at this location:
+
+```text
+./certs/authsamples-dev.ca.crt
+```
+
+### Run the Code
+
+Ensure that Node.js 20+ is installed, then build the SPA and API:
+
+```bash
+./build.sh
 ```
 
 Then run the following script to run the code for both SPA and API:
@@ -62,8 +76,8 @@ The system browser runs and you can sign in with your own Entra ID user accounts
 
 ## 2021 Security Update
 
-$\color{red}{\textsf{The initial SPA uses OAuth tokens in JavaScript code, as the simplest way to get integrated.}}$\
-$\color{red}{\textsf{In 2021 the best practice is to keep tokens out of the browser, to limit the impact of XSS exploits.}}$\
+The initial SPA uses OAuth tokens in JavaScript code, to demonstrate a productive SPA architecture.\
+In 2021 the best practice is to keep tokens out of the browser, to limit the impact of XSS exploits.\
 See the [Final SPA Code Sample](https://github.com/gary-archer/oauth.websample.final) for a more secure implementation.
 
 ## Programming Languages
