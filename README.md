@@ -56,16 +56,10 @@ Finally, configure [Browser SSL Trust](https://github.com/gary-archer/oauth.blog
 
 ### Run the Code
 
-Ensure that Node.js 20+ is installed, then build the SPA and API:
+Ensure that Node.js 20+ is installed, then build and run the SPA and API:
 
 ```bash
-./build.sh
-```
-
-Then run the following script to run the code for both SPA and API:
-
-```bash
-./run.sh
+./build.sh && ./run.sh
 ```
 
 The system browser runs and you can sign in with your own Entra ID user accounts.
