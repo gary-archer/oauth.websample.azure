@@ -79,9 +79,9 @@ done
 # Run the SPA in the default browser
 #
 if [ "$PLATFORM" == 'MACOS' ]; then
-  open $SPA_URL
+  open "$SPA_URL"
 elif [ "$PLATFORM" == 'WINDOWS' ]; then
-  start $SPA_URL
+  start "$SPA_URL"
 elif [ "$PLATFORM" == 'LINUX' ]; then
-  xdg-open $SPA_URL
+  xdg-open "$SPA_URL"
 fi
