@@ -8,7 +8,7 @@ import {HtmlStorageHelper} from '../utilities/htmlStorageHelper';
 /*
  * The entry point for initiating login and token requests
  */
-export class Authenticator {
+export class OAuthClient {
 
     private readonly userManager: UserManager;
     private loginTime: number | null;
