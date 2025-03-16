@@ -1,3 +1,4 @@
+import {AxiosError} from 'axios';
 import {JWTPayload, JWTVerifyOptions, jwtVerify} from 'jose';
 import {ClientError} from '../../logic/errors/clientError.js';
 import {ErrorCodes} from '../../logic/errors/errorCodes.js';
@@ -36,10 +37,11 @@ export class AccessTokenValidator {
 
             const result = await jwtVerify(accessToken, this.jwksRetriever.getRemoteJWKSet(), options);
             claims = result.payload;
+
         } catch (e: any) {
 
-            // Generic errors are returned when the JWKS download fails
-            if (e.code === 'ERR_JOSE_GENERIC') {
+            // JWKS URI failures return a 500
+            if (e instanceof AxiosError || e.code === 'ERR_JOSE_GENERIC') {
                 throw ErrorFactory.fromJwksDownloadError(e, this.configuration.jwksEndpoint);
             }
 
