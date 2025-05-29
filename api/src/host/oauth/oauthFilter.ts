@@ -3,58 +3,73 @@ import {Request} from 'express';
 import {ClaimsPrincipal} from '../../logic/entities/claims/claimsPrincipal.js';
 import {ClientError} from '../../logic/errors/clientError.js';
 import {ClaimsCache} from '../claims/claimsCache.js';
-import {ExtraClaimsProvider} from '../claims/extraClaimsProvider.js';
+import {ExtraValuesProvider} from '../claims/extraValuesProvider.js';
 import {AccessTokenValidator} from './accessTokenValidator.js';
-import {BearerToken} from './bearerToken.js';
 
 /*
  * The entry point for the processing to validate tokens and look up claims
- * Our approach provides extensible claims to our API and enables good performance
+ * This approach demonstrates one way to provide extensible authorization values to the API's business logic
  */
 export class OAuthFilter {
 
     private readonly cache: ClaimsCache;
     private readonly accessTokenValidator: AccessTokenValidator;
-    private readonly extraClaimsProvider: ExtraClaimsProvider;
+    private readonly extraValuesProvider: ExtraValuesProvider;
 
     public constructor(
         cache: ClaimsCache,
         accessTokenValidator: AccessTokenValidator,
-        extraClaimsProvider: ExtraClaimsProvider) {
+        extraValuesProvider: ExtraValuesProvider) {
 
         this.cache = cache;
         this.accessTokenValidator = accessTokenValidator;
-        this.extraClaimsProvider = extraClaimsProvider;
+        this.extraValuesProvider = extraValuesProvider;
     }
 
     /*
-     * Authorize a request and return claims on success, which can then be injected into business logic
+     * Authorize a request and set up the claims principal
      */
     public async authorizeRequestAndGetClaims(request: Request): Promise<ClaimsPrincipal> {
 
         // First read the access token
-        const accessToken = BearerToken.read(request);
+        const accessToken = this.readAccessToken(request);
         if (!accessToken) {
             throw ClientError.create401('No access token was supplied in the bearer header');
         }
 
         // On every API request we validate the JWT, in a zero trust manner
-        const tokenClaims = await this.accessTokenValidator.validateAccessToken(accessToken);
+        const tokenClaims = await this.accessTokenValidator.execute(accessToken);
 
-        // Return cached claims immediately if found
+        // Return extra authorization values immediately if they are cached
         const accessTokenHash = createHash('sha256').update(accessToken).digest('hex');
-        let extraClaims = this.cache.getClaimsForToken(accessTokenHash);
-        if (extraClaims) {
-            return new ClaimsPrincipal(tokenClaims, extraClaims);
+        let extraValues = this.cache.getExtraUserValues(accessTokenHash);
+        if (extraValues) {
+            return new ClaimsPrincipal(tokenClaims, extraValues);
         }
 
-        // Look up extra claims not in the JWT access token when the token is first received
-        extraClaims = await this.extraClaimsProvider.lookupExtraClaims(tokenClaims);
+        // Look up extra authorization values not in the JWT access token when the token is first received
+        extraValues = await this.extraValuesProvider.lookupExtraValues(tokenClaims);
 
-        // Cache the extra claims for subsequent requests with the same access token
-        this.cache.addClaimsForToken(accessTokenHash, extraClaims, tokenClaims.exp || 0);
+        // Cache the extra values for subsequent requests with the same access token
+        this.cache.setExtraUserValues(accessTokenHash, extraValues, tokenClaims.exp || 0);
 
-        // Return the final claims used by the API's authorization logic
-        return new ClaimsPrincipal(tokenClaims, extraClaims);
+        // Return the final object used by the API's authorization logic
+        return new ClaimsPrincipal(tokenClaims, extraValues);
+    }
+
+    /*
+     * Try to read the token from the authorization header
+     */
+    private readAccessToken(request: Request): string | null {
+
+        const authorizationHeader = request.header('authorization');
+        if (authorizationHeader) {
+            const parts = authorizationHeader.split(' ');
+            if (parts.length === 2 && parts[0].toLowerCase() === 'bearer') {
+                return parts[1];
+            }
+        }
+
+        return null;
     }
 }
