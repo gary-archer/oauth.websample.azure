@@ -23,7 +23,7 @@ export class AccessTokenValidator {
     /*
      * Do standard JWT access token validation using the JOSE library
      */
-    public async execute(accessToken: string): Promise<JWTPayload> {
+    public async validateAccessToken(accessToken: string): Promise<JWTPayload> {
 
         const options = {
             algorithms: [this.configuration.algorithm],
