@@ -8,26 +8,26 @@ import {ClaimsReader} from './claimsReader.js';
 export class ExtraClaimsProvider {
 
     /*
-     * Get claims from the API's own database based on the subject claim in the access token
+     * Given a manager ID look up extra values from the API's own data
      */
     public async lookupExtraClaims(jwtClaims: JWTPayload): Promise<ExtraClaims> {
 
         // A real API would use a database, but this API uses a mock implementation
-        const managerId = ClaimsReader.getStringClaim(jwtClaims, 'custom_manager_id');
+        const managerId = ClaimsReader.getStringClaim(jwtClaims, 'manager_id');
         if (managerId === '20116') {
 
             // These claims are used for the guestadmin@example.com user account
-            return new ExtraClaims('Global Manager', ['Europe', 'USA', 'Asia']);
+            return ExtraClaims.create('Global Manager', ['Europe', 'USA', 'Asia']);
 
         } else if (managerId == '10345') {
 
             // These claims are used for the guestuser@example.com user account
-            return new ExtraClaims('Regional Manager', ['USA']);
+            return ExtraClaims.create('Regional Manager', ['USA']);
 
         } else {
 
             // Use empty claims for unrecognized users
-            return new ExtraClaims('', []);
+            return new ExtraClaims();
         }
     }
 }

@@ -13,6 +13,7 @@ export class ClaimsCache {
     /*
      * Create the cache at application startup
      */
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     public constructor(configuration: OAuthConfiguration) {
 
         // Create the cache and set a default time to live in seconds
@@ -22,35 +23,34 @@ export class ClaimsCache {
         });
 
         // If required add debug output here to verify expiry occurs when expected
-        /* eslint-disable @typescript-eslint/no-unused-vars */
         this.cache.on('expired', (key: string, value: any) => {
-            console.log(`Expired token has been removed from the cache (hash: ${key})`);
+            console.log(`Expired entry has been removed from the cache (hash: ${key})`);
         });
     }
 
     /*
      * Get claims from the cache or return null if not found
      */
-    public getClaimsForToken(accessTokenHash: string): ExtraClaims | null {
+    public getExtraUserClaims(accessTokenHash: string): ExtraClaims | null {
 
         // Get the token hash and see if it exists in the cache
         const claims = this.cache.get<ExtraClaims>(accessTokenHash);
         if (!claims) {
 
             // If this is a new token and we need to do claims processing
-            console.debug(`New token will be added to claims cache (hash: ${accessTokenHash})`);
+            console.debug(`New entry will be added to claims cache (hash: ${accessTokenHash})`);
             return null;
         }
 
         // Otherwise return cached claims
-        console.debug(`Found existing token in claims cache (hash: ${accessTokenHash})`);
+        console.debug(`Found existing entry in claims cache (hash: ${accessTokenHash})`);
         return claims;
     }
 
     /*
      * Add claims to the cache until the token's time to live
      */
-    public addClaimsForToken(accessTokenHash: string, claims: ExtraClaims, expiry: number): void {
+    public setExtraUserClaims(accessTokenHash: string, claims: ExtraClaims, expiry: number): void {
 
         // Use the exp field returned from the token to work out the expiry time
         const epochSeconds = Math.floor((new Date() as any) / 1000);
@@ -58,7 +58,7 @@ export class ClaimsCache {
         if (secondsToCache > 0) {
 
             // Get the hash and output debug info
-            console.debug(`Token to be cached will expire in ${secondsToCache} seconds (hash: ${accessTokenHash})`);
+            console.debug(`Entry to be cached will expire in ${secondsToCache} seconds (hash: ${accessTokenHash})`);
 
             // Do not exceed the maximum time we configured
             if (secondsToCache > this.defaultTimeToLiveSeconds) {
@@ -66,7 +66,7 @@ export class ClaimsCache {
             }
 
             // Cache the token until the above time
-            console.debug(`Adding token to claims cache for ${secondsToCache} seconds (hash: ${accessTokenHash})`);
+            console.debug(`Adding entry to claims cache for ${secondsToCache} seconds (hash: ${accessTokenHash})`);
             this.cache.set(accessTokenHash, claims, secondsToCache);
         }
     }
