@@ -43,7 +43,7 @@ export class OAuthFilter {
 
         // Return cached claims immediately if found
         const accessTokenHash = createHash('sha256').update(accessToken).digest('hex');
-        let extraClaims = this.cache.getClaimsForToken(accessTokenHash);
+        let extraClaims = this.cache.getExtraUserClaims(accessTokenHash);
         if (extraClaims) {
             return new ClaimsPrincipal(tokenClaims, extraClaims);
         }
@@ -52,7 +52,7 @@ export class OAuthFilter {
         extraClaims = await this.extraClaimsProvider.lookupExtraClaims(tokenClaims);
 
         // Cache the extra claims for subsequent requests with the same access token
-        this.cache.addClaimsForToken(accessTokenHash, extraClaims, tokenClaims.exp || 0);
+        this.cache.setExtraUserClaims(accessTokenHash, extraClaims, tokenClaims.exp || 0);
 
         // Return the final claims used by the API's authorization logic
         return new ClaimsPrincipal(tokenClaims, extraClaims);
