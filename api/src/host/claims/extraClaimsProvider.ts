@@ -13,7 +13,7 @@ export class ExtraClaimsProvider {
     public async lookupExtraClaims(jwtClaims: JWTPayload): Promise<ExtraClaims> {
 
         // A real API would use a database, but this API uses a mock implementation
-        const managerId = ClaimsReader.getStringClaim(jwtClaims, 'manager_id');
+        const managerId = ClaimsReader.getStringClaim(jwtClaims, 'custom_manager_id');
         if (managerId === '20116') {
 
             // These claims are used for the guestadmin@example.com user account
