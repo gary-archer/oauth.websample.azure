@@ -94,7 +94,6 @@ export class ApiClient {
 
                 // Trigger a login redirect if we cannot refresh the access token
                 // Also end the API request in a controlled way, by throwing an error that is not rendered
-                await this.oauthClient.clearLoginState();
                 throw ErrorFactory.getFromLoginRequired();
             }
 
