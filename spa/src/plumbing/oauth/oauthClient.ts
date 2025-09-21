@@ -2,7 +2,6 @@ import {InMemoryWebStorage, UserManager, WebStorageStateStore} from 'oidc-client
 import {OAuthConfiguration} from '../../configuration/oauthConfiguration';
 import {ErrorCodes} from '../errors/errorCodes';
 import {ErrorFactory} from '../errors/errorFactory';
-import {UIError} from '../errors/uiError';
 import {HtmlStorageHelper} from '../utilities/htmlStorageHelper';
 
 /*
@@ -11,7 +10,6 @@ import {HtmlStorageHelper} from '../utilities/htmlStorageHelper';
 export class OAuthClient {
 
     private readonly userManager: UserManager;
-    private loginTime: number | null;
 
     public constructor(configuration: OAuthConfiguration) {
 
@@ -29,7 +27,7 @@ export class OAuthClient {
             // Use the Authorization Code Flow (PKCE)
             response_type: 'code',
 
-            // Tokens are stored only in memory, which is better from a security viewpoint
+            // Tokens are stored only in memory, which is better from an XSS prevention viewpoint
             userStore: new WebStorageStateStore({ store: new InMemoryWebStorage() }),
 
             // Store redirect state such as PKCE verifiers in session storage, for more reliable cleanup
@@ -48,7 +46,15 @@ export class OAuthClient {
 
         // Create the custom user manager
         this.userManager = new UserManager(settings);
-        this.loginTime = null;
+    }
+
+    /*
+     * Indicate whether the user has a valid session
+     */
+    public async getIsLoggedIn(): Promise<boolean> {
+
+        const user = await this.userManager.getUser();
+        return !!user;
     }
 
     /*
@@ -74,11 +80,10 @@ export class OAuthClient {
         // This flag avoids an unnecessary refresh attempt when the app first loads
         if (HtmlStorageHelper.isLoggedIn) {
 
-            // Use the traditional SPA solution if the page is reloaded
+            // Use the traditional SPA iframe renewal solution if the page is reloaded
             await this.performAccessTokenRenewalViaIframeRedirect();
 
-            // Return an access token if renewal was successful
-            // The SPA does not use refresh tokens, so remove one if received, to ensure iframe renewal
+            // Ensure no refresh token, since the SPA is not meant to use them
             const user = await this.userManager.getUser();
             if (user && user.refresh_token) {
                 user.refresh_token = '';
@@ -96,17 +101,14 @@ export class OAuthClient {
     /*
      * Do the interactive login redirect on the main window
      */
-    public async startLogin(api401Error: UIError | null): Promise<void> {
+    public async startLogin(currentLocation: string): Promise<void> {
 
         try {
             // Start a login redirect, by first storing the SPA's client side location
             // Some apps might also want to store form fields being edited in the state parameter
             const data = {
-                hash: location.hash.length > 0 ? location.hash : '#',
+                hash: currentLocation || '#',
             };
-
-            // Handle a special case
-            await this.preventRedirectLoop(api401Error);
 
             // Start a login redirect
             await this.userManager.signinRedirect({
@@ -126,40 +128,44 @@ export class OAuthClient {
     public async handleLoginResponse(): Promise<void> {
 
         // If the page loads with a state query parameter we classify it as an OAuth response
-        const args = new URLSearchParams(location.search);
-        const state = args.get('state');
-        if (state) {
+        if (location.search) {
 
-            // Only try to process a login response if the state exists
-            const storedState = await this.userManager.settings.stateStore?.get(state);
-            if (storedState) {
+            const args = new URLSearchParams(location.search);
+            const state = args.get('state');
+            if (state) {
 
-                let redirectLocation = '#';
-                try {
+                // Only try to process a login response if the state exists
+                const storedState = await this.userManager.settings.stateStore?.get(state);
+                if (storedState) {
 
-                    // Handle the login response and save tokens to memory
-                    const user = await this.userManager.signinRedirectCallback();
-                    user.refresh_token = '';
-                    this.userManager.storeUser(user);
+                    let redirectLocation = '#';
+                    try {
 
-                    // We will return to the app location before the login redirect
-                    redirectLocation = (user.state as any).hash;
+                        // Handle the login response and save tokens to memory
+                        const user = await this.userManager.signinRedirectCallback();
 
-                    // Update login state
-                    HtmlStorageHelper.isLoggedIn = true;
+                        // Ensure no refresh token, since the SPA is not meant to use them
+                        if (user.refresh_token) {
+                            user.refresh_token = '';
+                            await this.userManager.storeUser(user);
+                        }
 
-                    // The login time enables a check that avoids redirect loops when configuration is invalid
-                    this.loginTime = new Date().getTime();
+                        // We will return to the app location before the login redirect
+                        redirectLocation = (user.state as any).hash;
 
-                } catch (e: any) {
+                        // Update login state
+                        HtmlStorageHelper.isLoggedIn = true;
 
-                    // Handle and rethrow OAuth response errors
-                    throw ErrorFactory.getFromLoginOperation(e, ErrorCodes.loginResponseFailed);
+                    } catch (e: any) {
 
-                } finally {
+                        // Handle and rethrow OAuth response errors
+                        throw ErrorFactory.getFromLoginOperation(e, ErrorCodes.loginResponseFailed);
 
-                    // Always replace the browser location, to remove OAuth details from back navigation
-                    history.replaceState({}, document.title, redirectLocation);
+                    } finally {
+
+                        // Always replace the browser location, to remove OAuth details from back navigation
+                        history.replaceState({}, document.title, redirectLocation);
+                    }
                 }
             }
         }
@@ -200,7 +206,6 @@ export class OAuthClient {
 
         await this.userManager.removeUser();
         HtmlStorageHelper.isLoggedIn = false;
-        this.loginTime = null;
     }
 
     /*
@@ -242,25 +247,6 @@ export class OAuthClient {
 
                 // Rethrow any technical errors
                 throw ErrorFactory.getFromTokenError(e, ErrorCodes.tokenRenewalError);
-            }
-        }
-    }
-
-    /*
-     * Iframe token refresh can fail due to SSO cookies being dropped during iframe token renewal
-     * This can create a cycle so this check prevents a redirect loop if a successful login has just completed
-     */
-    private async preventRedirectLoop(api401Error: UIError | null): Promise<void> {
-
-        if (api401Error && this.loginTime) {
-
-            const currentTime = new Date().getTime();
-            const millisecondsSinceLogin = currentTime - this.loginTime;
-            if (millisecondsSinceLogin < 1000) {
-
-                // This causes an error to be presented after which a retry does a new top level redirect
-                await this.clearLoginState();
-                throw api401Error;
             }
         }
     }

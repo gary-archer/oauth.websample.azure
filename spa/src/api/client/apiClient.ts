@@ -72,9 +72,7 @@ export class ApiClient {
         let token = await this.oauthClient.getAccessToken();
         if (!token) {
 
-            // Trigger a login redirect if we cannot get an access token
-            // Also end the API request in a controlled way, by throwing an error that is not rendered
-            await this.oauthClient.startLogin(null);
+            // Throw an error to inform the UI to move the user to the login required view
             throw ErrorFactory.getFromLoginRequired();
         }
 
@@ -85,7 +83,7 @@ export class ApiClient {
 
         } catch (e1: any) {
 
-            // Report Ajax errors if this is not a 401
+            // Report fetch errors if this is not a 401
             const error = e1 as UIError;
             if (error.getStatusCode() !== 401) {
                 throw error;
@@ -97,7 +95,7 @@ export class ApiClient {
 
                 // Trigger a login redirect if we cannot refresh the access token
                 // Also end the API request in a controlled way, by throwing an error that is not rendered
-                await this.oauthClient.startLogin(error);
+                await this.oauthClient.clearLoginState();
                 throw ErrorFactory.getFromLoginRequired();
             }
 
@@ -108,17 +106,10 @@ export class ApiClient {
 
             } catch (e2: any) {
 
-                // If there is a permanent token error then the token configuration is wrong
-                // Present an error and ensure that the retry does a new top level login
-                // This enables recovery once the token configuration is fixed at the authorization server
-                const error = e2 as UIError;
-                if ((error.getStatusCode() === 401 && error.getErrorCode() === ErrorCodes.invalidToken) ||
-                    (error.getStatusCode() === 403 && error.getErrorCode() === ErrorCodes.insufficientScope)) {
-
-                    await this.oauthClient.clearLoginState();
-                }
-
-                throw error;
+                // A permanent API 401 error triggers a new login.
+                // This could be caused by an invalid API configuration.
+                await this.oauthClient.clearLoginState();
+                throw ErrorFactory.getFromLoginRequired();
             }
         }
     }

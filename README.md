@@ -64,6 +64,12 @@ Ensure that Node.js 24+ is installed, then build and run the SPA and API:
 
 The system browser runs and you can sign in with your own Entra ID user accounts.
 
+## Problem Areas
+
+- The SPA demonstrates the original PKCE flow with tokens in the browser, which is no longer recommended in 2021.\
+- The SPA also demonstrates some usability problems with iframe-based silent token renewal.\
+- The [Final SPA Code Sample](https://github.com/gary-archer/oauth.websample.final) solves these problems bur requires a more complex flow.
+
 ## Further Information
 
 * See the [Entra ID SPA and API OAuth Flow](https://github.com/gary-archer/oauth.blog/tree/master/public/posts/azure-ad-troubleshooting.mdx) page to understand some finer details.
