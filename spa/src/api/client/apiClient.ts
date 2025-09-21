@@ -1,5 +1,4 @@
 import axios, {Method} from 'axios';
-import {ErrorCodes} from '../../plumbing/errors/errorCodes';
 import {ErrorFactory} from '../../plumbing/errors/errorFactory';
 import {UIError} from '../../plumbing/errors/uiError';
 import {OAuthClient} from '../../plumbing/oauth/oauthClient';
@@ -84,9 +83,9 @@ export class ApiClient {
         } catch (e1: any) {
 
             // Report fetch errors if this is not a 401
-            const error = e1 as UIError;
-            if (error.getStatusCode() !== 401) {
-                throw error;
+            const error1 = e1 as UIError;
+            if (error1.getStatusCode() !== 401) {
+                throw error1;
             }
 
             // If we received a 401 then try to refresh the access token
@@ -105,6 +104,12 @@ export class ApiClient {
                 return await this.callApiWithToken(url, method, dataToSend, token);
 
             } catch (e2: any) {
+
+                // Report errors if this is not a 401
+                const error2 = e2 as UIError;
+                if (error2.getStatusCode() !== 401) {
+                    throw error2;
+                }
 
                 // A permanent API 401 error triggers a new login.
                 // This could be caused by an invalid API configuration.
