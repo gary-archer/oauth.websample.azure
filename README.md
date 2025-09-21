@@ -66,9 +66,9 @@ The system browser runs and you can sign in with your own Entra ID user accounts
 
 ## Problem Areas
 
-- The SPA demonstrates the original PKCE flow with tokens in the browser, which is no longer recommended in 2021.
+- The initial SPA does not handle tokens in line with 2021 security recommendations.
 - The SPA also demonstrates some usability problems with iframe-based silent token renewal.
-- The [Final SPA Code Sample](https://github.com/gary-archer/oauth.websample.final) solves these problems bur requires a more complex flow.
+- The [Final SPA Code Sample](https://github.com/gary-archer/oauth.websample.final) solves these problems but requires a more complex flow.
 
 ## Further Information
 
