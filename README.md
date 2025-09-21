@@ -74,12 +74,6 @@ The system browser runs and you can sign in with your own Entra ID user accounts
 
 * See the [Entra ID SPA and API OAuth Flow](https://github.com/gary-archer/oauth.blog/tree/master/public/posts/azure-ad-troubleshooting.mdx) page to understand some finer details.
 
-## 2021 Security Update
-
-The initial SPA uses OAuth tokens in JavaScript code, to demonstrate a productive SPA architecture.\
-In 2021 the best practice is to instead keep tokens out of the browser, to limit the impact of XSS exploits.\
-See the [Final SPA Code Sample](https://github.com/gary-archer/oauth.websample.final) for a more secure implementation.
-
 ## Programming Languages
 
 * The SPA and its views use plain TypeScript code.
