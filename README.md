@@ -56,13 +56,19 @@ Finally, configure [Browser SSL Trust](https://github.com/gary-archer/oauth.blog
 
 ### Run the Code
 
-Ensure that Node.js 22+ is installed, then build and run the SPA and API:
+Ensure that Node.js 24+ is installed, then build and run the SPA and API:
 
 ```bash
 ./build.sh && ./run.sh
 ```
 
 The system browser runs and you can sign in with your own Entra ID user accounts.
+
+## Problem Areas
+
+- The SPA demonstrates the original PKCE flow with tokens in the browser, which is no longer recommended in 2021.\
+- The SPA also demonstrates some usability problems with iframe-based silent token renewal.\
+- The [Final SPA Code Sample](https://github.com/gary-archer/oauth.websample.final) solves these problems bur requires a more complex flow.
 
 ## Further Information
 
@@ -71,7 +77,7 @@ The system browser runs and you can sign in with your own Entra ID user accounts
 ## 2021 Security Update
 
 The initial SPA uses OAuth tokens in JavaScript code, to demonstrate a productive SPA architecture.\
-In 2021 the best practice is to keep tokens out of the browser, to limit the impact of XSS exploits.\
+In 2021 the best practice is to instead keep tokens out of the browser, to limit the impact of XSS exploits.\
 See the [Final SPA Code Sample](https://github.com/gary-archer/oauth.websample.final) for a more secure implementation.
 
 ## Programming Languages

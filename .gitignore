@@ -1,10 +1,8 @@
-.gitignore
+.DS_Store
 node_modules
+dist
 resources
 certs/*.p12
 certs/*.crt
 certs/*.key
-/spa/dist/*
-!/spa/dist/loggedout.js
-utils/response.txt
-.DS_Store
+response.txt
