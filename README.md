@@ -10,7 +10,7 @@
 An OAuth code sample that adapts the [updated SPA and API code sample](https://github.com/gary-archer/oauth.websample2) to use Microsoft Entra ID.\
 The goal is to demonstrate code portability, where these features work the same regardless of the authorization server:
 
-- The SPA uses the traditional OpenID connect flow, with session management features.
+- The SPA uses the traditional OpenID connect flow, with a complete application lifecycle.
 - The API combines claims-based authorization with finer-grained business permissions.
 - The SPA and API use both OAuth user attributes and business user attributes.
 
